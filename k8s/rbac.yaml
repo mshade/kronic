@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: kron
+    name: kron
+  name: kron
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: kron
+    app.kubernetes.io/name: kron
+  name: kron
+  namespace: kron
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: kron
+    app.kubernetes.io/name: kron
+  name: kron
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - events
+  - persistentvolumes
+  - persistentvolumeclaims
+  - persistentvolumeclaims/status
+  - nodes
+  - proxy/nodes
+  - pods/log
+  - secrets
+  - services
+  - endpoints
+  - configmaps
+  - serviceaccounts
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: kron
+    app.kubernetes.io/name: kron
+  name: kron
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kron
+subjects:
+- kind: ServiceAccount
+  name: kron
+  namespace: kron
+---
