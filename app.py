@@ -1,16 +1,39 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 
 from kron import getCronJobs, getNamespaces, getJobs, getCronJob, getPods, getPodLogs, toggleCronJob
 
-app = Flask(__name__)
+app = Flask(__name__,
+            static_url_path='',
+            static_folder='static')
+
+@app.route("/")
+def index():
+    cronjobs = getCronJobs()
+    namespaces = {}
+    for cronjob in cronjobs:
+        namespaces[cronjob["namespace"]] = namespaces.get(cronjob["namespace"], 0) + 1
+
+    return render_template("index.html", namespaces=namespaces)
+
+@app.route("/namespaces/<name>")
+def namespaces(name):
+    cronjob_names = getCronJobs(name)
+    cronjobs = [getCronJob(namespace=name, cronjob_name=cronjob["name"]) for cronjob in cronjob_names]
+    for cron in cronjobs:
+        jobs = getJobs(namespace=name, cronjob_name=cron["metadata"]["name"])
+        cron["jobs"] = jobs
+        for job in cron["jobs"]:
+            job["pods"] = getPods(cron["metadata"]["namespace"], job["metadata"]["name"])
+
+    return render_template("namespaceJobs.html", cronjobs=cronjobs, namespace=name)
 
 @app.route("/api/")
-def index():
+def allCronJobs():
     jobs = getCronJobs()
     return jobs
 
 @app.route("/api/namespaces/")
-def namespaces():
+def apiNamespaces():
     namespaces = getNamespaces()
     return namespaces
 

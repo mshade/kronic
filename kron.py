@@ -58,10 +58,21 @@ def getJobs(namespace, cronjob_name):
 
     return filtered
 
-def getPods(namespace):
-    pods = v1.list_namespaced_pod(namespace=namespace)
-    cleaned = [_cleanObject(pod) for pod in pods.items]
-    return cleaned
+def getPods(namespace, job_name=None):
+    all_pods = v1.list_namespaced_pod(namespace=namespace)
+    cleaned = [_cleanObject(pod) for pod in all_pods.items]
+    pods = []
+    if job_name:
+        for pod in cleaned:
+            if pod["metadata"]["ownerReferences"][0]["name"] == job_name:
+                print(f"pod belongs to {job_name}")
+                pods.append(pod)
+            else:
+                print(f"pod {pod['metadata']['name']} does not belong to {job_name}")
+    else:
+        pods = cleaned
+
+    return pods
 
 def getPodLogs(namespace, pod_name):
     logs = v1.read_namespaced_pod_log(pod_name, namespace, tail_lines=1000, timestamps=True)

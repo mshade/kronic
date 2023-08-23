@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{% block title %}Cronjobs in {{ namespace }} {% endblock %}</h2>
+    <div>
+      {% for cronjob in cronjobs %}
+      <div>
+        <h3>{{ cronjob.metadata.name }}</h3>
+        <blockquote>{{ cronjob.spec.schedule }}<br />
+           Suspended: {{ cronjob.spec.suspend }}<br />
+           Last Successful Run: {{ cronjob.status.lastSuccessfulTime }}
+        </blockquote>
+        <form action="/api/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}/suspend" method="post">
+          <button role="button" type="submit" name="toggle">Suspend / Resume</button>
+        </form>
+        <details>
+          <summary>Jobs and Pods</summary>
+          <p>
+            <ul>
+              {% for job in cronjob.jobs %}
+              <li><job: pre>{{ job["metadata"]["name"] }}</pre></li>
+                <ul>
+                {% for pod in job.pods %}
+                  <li><pre><a href="/api/namespaces/{{namespace}}/pods/{{pod.metadata.name}}/logs">{{ pod["metadata"]["name"] }}</a></pre></li>
+                {% endfor %}
+                </ul>
+              {% endfor %}
+            </ul>
+          </p>
+        </details>
+      </div>
+      {% endfor %}
+    </div>
+{% endblock %}

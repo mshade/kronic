@@ -7,11 +7,15 @@ Todo:
 - show logs for pod
 - events for cron/job/pod
 
-/api/ - list all cronjobs across all namespaces
+homepage: namespaces with cronjob counts
+namespace page:
+    - list of cronjobs, jobs, pods under each
+    - status (success/fail), suspended, schedule
+    - suspend button
+    - trigger button
 
-    /namespaces/ - list all namespaces
-    /namespace/<name> - get cronjobs in that namespace
-    /namespaces/<name>/pods/<name>
-    /namespaces/<name>/pods/<name>/log
-
-    /
+cronjob page:
+    - jobs/pods
+    - pod logs
+    - suspend / trigger
+    - duplicate / edit
