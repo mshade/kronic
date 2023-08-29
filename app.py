@@ -51,6 +51,8 @@ def cronjobView(namespace, cronjob_name):
     if request.method == "POST":
         edited_cronjob = yaml.safe_load(request.form["yaml"])
         cronjob = updateCronJob(namespace, edited_cronjob)
+        if cronjob["metadata"]["name"] != cronjob_name:
+            return redirect(f"/namespaces/{namespace}/cronjobs/{cronjob['metadata']['name']}", code=302)
     else:
         cronjob = getCronJob(namespace, cronjob_name)
 
@@ -65,7 +67,7 @@ def cronjobView(namespace, cronjob_name):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
 )
-def deleteJobEndpoint(namespace, cronjob_name):
+def deleteCronJobEndpoint(namespace, cronjob_name):
     deleted = deleteCronJob(namespace, cronjob_name)
     return redirect(f"/namespaces/{namespace}", code=302)
 
