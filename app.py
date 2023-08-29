@@ -52,7 +52,10 @@ def cronjobView(namespace, cronjob_name):
         edited_cronjob = yaml.safe_load(request.form["yaml"])
         cronjob = updateCronJob(namespace, edited_cronjob)
         if cronjob["metadata"]["name"] != cronjob_name:
-            return redirect(f"/namespaces/{namespace}/cronjobs/{cronjob['metadata']['name']}", code=302)
+            return redirect(
+                f"/namespaces/{namespace}/cronjobs/{cronjob['metadata']['name']}",
+                code=302,
+            )
     else:
         cronjob = getCronJob(namespace, cronjob_name)
 
