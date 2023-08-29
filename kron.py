@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from kubernetes.config import ConfigException
+from kubernetes.client.rest import ApiException
 import datetime
 
 try:
@@ -30,6 +31,18 @@ def _cleanObject(api_object):
     object["metadata"].pop("managedFields")
     return object
 
+def _hasLabel(api_object, k, v):
+    ### Return True/False if a label key and value match
+    metadata = api_object["metadata"]
+    if "labels" in metadata:
+        print("object has labels")
+        if k in metadata["labels"]:
+            print(f"{k} is one label")
+            if metadata["labels"][k] == v:
+                print(f"{k} is set to {v}")
+                return True
+    return False
+
 def getCronJobs(namespace=""):
     if namespace == "":
         cronjobs = batch.list_cron_job_for_all_namespaces()
@@ -40,19 +53,28 @@ def getCronJobs(namespace=""):
     return _itemFields(cronjobs, fields)
 
 def getCronJob(namespace, cronjob_name):
-    cronjob = batch.read_namespaced_cron_job(cronjob_name, namespace)
+    try:
+        cronjob = batch.read_namespaced_cron_job(cronjob_name, namespace)
+    except ApiException:
+        return False
+
     return _cleanObject(cronjob)
 
 def getNamespaces():
     namespaces = v1.list_namespace()
-
     return _itemFields(namespaces)
 
 def getJobs(namespace, cronjob_name):
     jobs = batch.list_namespaced_job(namespace=namespace)
     cleaned = [_cleanObject(job) for job in jobs.items]
     if cronjob_name:
-        filtered = [job for job in cleaned if job["metadata"]["ownerReferences"][0]["name"] == cronjob_name]
+        filtered = []
+        for job in cleaned:
+            if "ownerReferences" in job["metadata"]:
+                if job["metadata"]["ownerReferences"][0]["name"] == cronjob_name:
+                    filtered.append(job)
+            elif _hasLabel(job, "kron.mshade.org/created-from", cronjob_name):
+                filtered.append(job)
     else:
         filtered = cleaned
 
@@ -85,10 +107,13 @@ def triggerCronJob(namespace, cronjob_name):
     # Set a unique name that indicates this is a manual invocation
     job.metadata.name = str(job.metadata.name + '-manual-' + date_stamp)[:64]
     # Set a label to identify jobs created by kron
-    job.metadata.labels = {"kron.mshade.org/manually-triggered": "true"}
+    job.metadata.labels = {
+        "kron.mshade.org/manually-triggered": "true",
+        "kron.mshade.org/created-from": cronjob_name
+        }
 
     trigger_job = batch.create_namespaced_job(body=job, namespace=namespace)
-    return trigger_job
+    return _cleanObject(trigger_job)
 
 
 def toggleCronJob(namespace, cronjob_name):
@@ -101,3 +126,17 @@ def toggleCronJob(namespace, cronjob_name):
     cronjob = batch.patch_namespaced_cron_job(name=cronjob_name, namespace=namespace, body=patch_body)
     return _cleanObject(cronjob)
 
+def updateCronJob(namespace, spec):
+    name = spec["metadata"]["name"]
+    if getCronJob(namespace, name):
+        cronjob = batch.patch_namespaced_cron_job(name, namespace, spec)
+    else:
+        cronjob = batch.create_namespaced_cron_job(namespace, spec)
+    return _cleanObject(cronjob)
+
+def deleteCronJob(namespace, cronjob_name):
+    try: 
+        deleted = batch.delete_namespaced_cron_job(cronjob_name, namespace)
+    except ApiException:
+        return False
+    return deleted

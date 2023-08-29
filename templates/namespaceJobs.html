@@ -1,34 +1,90 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{% block title %}Cronjobs in {{ namespace }} {% endblock %}</h2>
-    <div>
+    <h1>{% block title %}Cronjobs in {{ namespace }} {% endblock %}</h1>
       {% for cronjob in cronjobs %}
-      <div>
-        <h3>{{ cronjob.metadata.name }}</h3>
-        <blockquote>{{ cronjob.spec.schedule }}<br />
-           Suspended: {{ cronjob.spec.suspend }}<br />
-           Last Successful Run: {{ cronjob.status.lastSuccessfulTime }}
-        </blockquote>
-        <form action="/api/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}/suspend" method="post">
-          <button role="button" type="submit" name="toggle">Suspend / Resume</button>
-        </form>
+      <div x-data="">
+      <article>
+        <table>
+          <tr>
+            <th><strong>{{ cronjob.metadata.name }}</strong></th>
+            <th><div
+              role="button"
+              x-on:click="fetch('/api/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}/trigger',
+              {
+                method: 'POST',
+                body: '',
+                headers: {'Content-Type': 'application/json'}
+              })
+              .then(response=> {
+                if (!response.ok)
+                  alert('Something went wrong: ${response.status - ${response.statusText}}')
+              })">
+              Trigger Job Now
+            </div></th>
+            <th>
+              <div x-data="{ suspended: {{cronjob.spec.suspend | lower }} }">
+              <label>
+                Suspended
+              <input type="checkbox"
+                     role="switch"
+                     @click="fetch('/api/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}/suspend',
+                        {
+                          method: 'POST',
+                          body: '',
+                          headers: {'Content-Type': 'application/json'}    
+                        })
+                          .then(response=> {
+                            if (!response.ok)
+                              alert('Something went wrong: ${response.status - ${response.statusText}}')
+                          })"
+                      x-model="suspended"/>
+              </label>
+              </div>
+            </th>
+            <th>
+              <div x-data="">
+                <div role="button" @click="fetch('/api/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}/delete',
+                {
+                  method: 'POST',
+                  body: '',
+                  headers: {'Content-Type': 'application/json'}
+                })
+                .then(response=> {
+                  if (!response.ok)
+                    alert('Something went wrong: ${response.status - ${response.statusText}}')
+                })">
+                Delete
+              </div>
+            </th>
+            <th>
+              <a role="button" href="/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}">Edit</a>
+            </th>
+          </tr>
+        </table>
         <details>
-          <summary>Jobs and Pods</summary>
-          <p>
-            <ul>
-              {% for job in cronjob.jobs %}
-              <li><job: pre>{{ job["metadata"]["name"] }}</pre></li>
-                <ul>
-                {% for pod in job.pods %}
-                  <li><pre><a href="/api/namespaces/{{namespace}}/pods/{{pod.metadata.name}}/logs">{{ pod["metadata"]["name"] }}</a></pre></li>
+          <summary>details</summary>
+          <p>Image: <code>{{ cronjob.spec.jobTemplate.spec.template.spec.containers[0].image }}</code></p>
+          {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
+            <p>Command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code></p>
+          {% endif %}
+          <p>Schedule: <code>{{ cronjob.spec.schedule }}</code></p>
+          <p>Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code></p>
+          <p>Jobs and Pods</p>
+            <p>
+              <ul>
+                {% for job in cronjob.jobs %}
+                <li><code>{{ job.metadata.name }}</code></li>
+                  <ul>
+                  {% for pod in job.pods %}
+                    <li><code>{{ pod.metadata.name }}</code> <a href="/api/namespaces/{{namespace}}/pods/{{pod.metadata.name}}/logs" role="button">logs</a>
+                  {% endfor %}
+                  </ul>
                 {% endfor %}
-                </ul>
-              {% endfor %}
-            </ul>
-          </p>
+              </ul>
+            </p>
         </details>
+      </article>
       </div>
       {% endfor %}
-    </div>
 {% endblock %}

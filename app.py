@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
+import yaml
 
-from kron import getCronJobs, getNamespaces, getJobs, getCronJob, getPods, getPodLogs, toggleCronJob
+from kron import getCronJobs, getNamespaces, getJobs, getCronJob, getPods, getPodLogs, toggleCronJob, triggerCronJob, updateCronJob, deleteCronJob
 
 app = Flask(__name__,
             static_url_path='',
@@ -26,6 +27,26 @@ def namespaces(name):
             job["pods"] = getPods(cron["metadata"]["namespace"], job["metadata"]["name"])
 
     return render_template("namespaceJobs.html", cronjobs=cronjobs, namespace=name)
+
+@app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods = ['GET', 'POST'])
+def cronjobView(namespace, cronjob_name):
+    if request.method == 'POST':
+        edited_cronjob = yaml.safe_load(request.form['yaml'])
+        cronjob = updateCronJob(namespace, edited_cronjob)
+    else:
+        cronjob = getCronJob(namespace, cronjob_name)
+    
+    del cronjob["status"]
+    del cronjob["metadata"]["uid"]
+    del cronjob["metadata"]["resourceVersion"]
+
+    cronjob_yaml = yaml.dump(cronjob)
+    return render_template("cronjob.html", cronjob=cronjob, yaml=cronjob_yaml)
+
+@app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods = ['POST'])
+def deleteJobEndpoint(namespace, cronjob_name):
+    deleted = deleteCronJob(namespace, cronjob_name)
+    return redirect(f"/namespaces/{namespace}", code=302)
 
 @app.route("/api/")
 def allCronJobs():
@@ -59,6 +80,11 @@ def getSetSuspended(namespace, cronjob_name):
         cronjob = toggleCronJob(namespace, cronjob_name)
         return cronjob
 
+@app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/trigger", methods = ['POST'])
+def triggerNewJob(namespace, cronjob_name):
+    """Manually trigger a job from <cronjob_name>"""
+    cronjob = triggerCronJob(namespace, cronjob_name)
+    return cronjob
 
 @app.route('/api/namespaces/<namespace>/jobs', defaults={'cronjob_name': None})
 @app.route('/api/namespaces/<namespace>/jobs/<cronjob_name>')

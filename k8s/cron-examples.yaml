@@ -28,6 +28,7 @@ spec:
     metadata:
       name: hello2
     spec:
+      completions: 3
       template:
         spec:
           containers:
