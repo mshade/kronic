@@ -23,7 +23,7 @@
               })
               .then(response=> {
                 if (!response.ok)
-                  alert('Something went wrong: ${response.status - ${response.statusText}}')
+                  alert('Something went wrong: ${response.status} - ${response.statusText}')
               })">
               Trigger Job Now
             </div></th>
@@ -50,7 +50,7 @@
             <th>
               <div x-data="">
               <div role="button" 
-                @click="document.getElementById('delete-{{cronjob.metadata.name}}').submit();">Delete</div>
+                @click="confirm('Are you sure?') ? document.getElementById('delete-{{cronjob.metadata.name}}').submit() : false;">Delete</div>
               </div>
             </th>
             <th>
@@ -67,20 +67,60 @@
           <p>Schedule: <code>{{ cronjob.spec.schedule }}</code></p>
           <p>Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code></p>
           <p>Jobs and Pods</p>
+          <div x-cloak
+               x-data="{jobs: [], isLoading: true}"
+               x-init="async () => {
+                const response = await fetch('/api/namespaces/{{namespace}}/jobs/{{cronjob.metadata.name}}')
+                const data = await response.json();
+                jobs = data;
+                isLoading = false;
+               }">
             <p>
               <ul>
-                {% for job in cronjob.jobs %}
-                <li><code>{{ job.metadata.name }}</code></li>
-                  <ul>
-                  {% for pod in job.pods %}
-                    <li><code>{{ pod.metadata.name }}</code> <a href="/api/namespaces/{{namespace}}/pods/{{pod.metadata.name}}/logs" role="button">logs</a>
-                  {% endfor %}
-                  </ul>
-                {% endfor %}
+                <template x-for="job in jobs">
+                  <div>
+                    <li><code x-text="job.metadata.name"></code></li>
+                      <ul>
+                        <div>
+                          <template x-for="pod in job.pods">
+                            <div>
+                              <li><code x-text="pod.metadata.name"></code></li>
+                              <div x-data="fetchLogs()">
+                              <details x-on:click="getLogs('{{namespace}}', pod.metadata.name); this.onclick=null;">
+                                <summary class="secondary">logs</summary>
+                                <template x-if="logs">
+                                  <code x-text="logs"></code>
+                                </template>
+                              </details>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </ul>
+                    </div>
+                </template>
               </ul>
             </p>
+          </div>
         </details>
       </article>
       </div>
       {% endfor %}
+  <script>
+    function fetchLogs() {
+      return {
+        isLoading: false,
+        logs: null,
+        getLogs(namespace, podname) {
+          this.isLoading = true;
+          fetch('/api/namespaces/' + namespace + '/pods/' + podname + '/logs')
+            .then(res => res.text())
+            .then(data => {
+              this.isLoading = false;
+              this.logs = data;
+            })
+        }
+      }
+    }
+  </script
 {% endblock %}

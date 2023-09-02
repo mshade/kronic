@@ -5,6 +5,7 @@ from kron import (
     getCronJobs,
     getNamespaces,
     getJobs,
+    getJobsAndPods,
     getCronJob,
     getPods,
     getPodLogs,
@@ -87,11 +88,11 @@ def apiNamespaces():
     return namespaces
 
 
-@app.route("/api/namespaces/<name>/cronjobs")
-@app.route("/api/namespaces/<name>")
-def namespace(name):
-    jobs = getCronJobs(name)
-    return jobs
+@app.route("/api/namespaces/<namespace>/cronjobs")
+@app.route("/api/namespaces/<namespace>")
+def namespace(namespace):
+    cronjobs = getCronJobs(namespace)
+    return cronjobs
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>")
@@ -127,7 +128,7 @@ def triggerNewJob(namespace, cronjob_name):
 @app.route("/api/namespaces/<namespace>/jobs", defaults={"cronjob_name": None})
 @app.route("/api/namespaces/<namespace>/jobs/<cronjob_name>")
 def showJobs(namespace, cronjob_name):
-    jobs = getJobs(namespace, cronjob_name)
+    jobs = getJobsAndPods(namespace, cronjob_name)
     return jobs
 
 

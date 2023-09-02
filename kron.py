@@ -106,6 +106,13 @@ def getPods(namespace, job_name=None):
     return pods
 
 
+def getJobsAndPods(namespace, cronjob_name):
+    jobs = getJobs(namespace, cronjob_name)
+    for job in jobs:
+        job["pods"] = getPods(namespace, job["metadata"]["name"])
+
+    return jobs
+
 def getPodLogs(namespace, pod_name):
     logs = v1.read_namespaced_pod_log(
         pod_name, namespace, tail_lines=1000, timestamps=True
