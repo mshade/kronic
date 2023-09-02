@@ -9,4 +9,5 @@ RUN pip install -r requirements.py
 
 
 FROM deps as dev
+RUN apk add --no-cache git openssh-client-default
 CMD flask run --debug -h 0.0.0.0
