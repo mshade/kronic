@@ -13,6 +13,7 @@ from kron import (
     triggerCronJob,
     updateCronJob,
     deleteCronJob,
+    deleteJob,
 )
 
 app = Flask(__name__, static_url_path="", static_folder="static")
@@ -30,7 +31,7 @@ def index():
 
 
 @app.route("/namespaces/<name>")
-def namespaces(name):
+def namespaceView(name):
     cronjob_names = getCronJobs(name)
     cronjobs = [
         getCronJob(namespace=name, cronjob_name=cronjob["name"])
@@ -71,13 +72,13 @@ def cronjobView(namespace, cronjob_name):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
 )
-def deleteCronJobEndpoint(namespace, cronjob_name):
+def apiDeleteCronJob(namespace, cronjob_name):
     deleted = deleteCronJob(namespace, cronjob_name)
-    return redirect(f"/namespaces/{namespace}", code=302)
+    return deleted
 
 
 @app.route("/api/")
-def allCronJobs():
+def apiAllCronJobs():
     jobs = getCronJobs()
     return jobs
 
@@ -90,13 +91,13 @@ def apiNamespaces():
 
 @app.route("/api/namespaces/<namespace>/cronjobs")
 @app.route("/api/namespaces/<namespace>")
-def namespace(namespace):
+def apiNamespaceCronjobs(namespace):
     cronjobs = getCronJobs(namespace)
     return cronjobs
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>")
-def showCronJob(namespace, cronjob_name):
+def apiGetCronJob(namespace, cronjob_name):
     cronjob = getCronJob(namespace, cronjob_name)
     return cronjob
 
@@ -105,7 +106,7 @@ def showCronJob(namespace, cronjob_name):
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/suspend",
     methods=["GET", "POST"],
 )
-def getSetSuspended(namespace, cronjob_name):
+def apiToggleSuspended(namespace, cronjob_name):
     if request.method == "GET":
         """Return the suspended status of the <cronjob_name>"""
         cronjob = getCronJob(namespace, cronjob_name)
@@ -119,26 +120,31 @@ def getSetSuspended(namespace, cronjob_name):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/trigger", methods=["POST"]
 )
-def triggerNewJob(namespace, cronjob_name):
+def apiTriggerJob(namespace, cronjob_name):
     """Manually trigger a job from <cronjob_name>"""
     cronjob = triggerCronJob(namespace, cronjob_name)
     return cronjob
 
 
-@app.route("/api/namespaces/<namespace>/jobs", defaults={"cronjob_name": None})
-@app.route("/api/namespaces/<namespace>/jobs/<cronjob_name>")
-def showJobs(namespace, cronjob_name):
+@app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/getJobs")
+def apiGetJobs(namespace, cronjob_name):
     jobs = getJobsAndPods(namespace, cronjob_name)
     return jobs
 
 
 @app.route("/api/namespaces/<namespace>/pods")
-def showPods(namespace):
+def apiGetPods(namespace):
     pods = getPods(namespace)
     return pods
 
 
 @app.route("/api/namespaces/<namespace>/pods/<pod_name>/logs")
-def showPodLogs(namespace, pod_name):
+def apiGetPodLogs(namespace, pod_name):
     logs = getPodLogs(namespace, pod_name)
     return logs
+
+
+@app.route("/api/namespaces/<namespace>/jobs/<job_name>/delete", methods=["POST"])
+def apiDeleteJob(namespace, job_name):
+    deleted = deleteJob(namespace, job_name)
+    return deleted
