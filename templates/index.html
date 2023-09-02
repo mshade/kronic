@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} All Cronjobs {% endblock %}</h1>
-    <div>
-      <article>
-      <table>
-        <tr>
-          <th>Namespace</th>
-          <th>Cronjobs</th>
-        </tr>
-        {% for ns in namespaces %}
-        <tr>
-          <td><a href="/namespaces/{{ ns }}">{{ ns }}</a></td>
-          <td>{{ namespaces[ns] }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-    </article>
-    </div>
+<h1>{% block title %}Namespaces with Cronjobs{% endblock %}</h1>
+<div>
+  <article>
+    <table>
+      <tr>
+        <th>Namespace</th>
+        <th>Cronjobs</th>
+      </tr>
+      {% for ns in namespaces %}
+      <tr>
+        <td><a href="/namespaces/{{ ns }}">{{ ns }}</a></td>
+        <td>{{ namespaces[ns] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </article>
+</div>
 {% endblock %}
