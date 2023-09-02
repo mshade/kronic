@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
-
 {% block content %}
+<div class="grid">
+  <div>
+    <h2>{% block title %}Editing {{cronjob.metadata.name}} in {{cronjob.metadata.namespace}}{% endblock %}</h2>
+  </div>
+  <div>
     <a role="button" href="/namespaces/{{cronjob.metadata.namespace}}">Back to {{cronjob.metadata.namespace}}</a>
-    <form action="/namespaces/{{cronjob.metadata.namespace}}/cronjobs/{{cronjob.metadata.name}}" method="post">
-      <label for="yaml">Cronjob YAML</label>
-      <textarea rows="{{ yaml.count('\n') + 7 }}" id="yaml" name="yaml">{{yaml}}</textarea>
-      <input type="submit" value="Submit">
-    </form>
+  </div>
+</div>
+<form action="/namespaces/{{cronjob.metadata.namespace}}/cronjobs/{{cronjob.metadata.name}}" method="post">
+  <label for="yaml">Cronjob YAML</label>
+  <textarea rows="{{ yaml.count('\n') + 7 }}" id="yaml" name="yaml">{{yaml}}</textarea>
+  <input type="submit" value="Submit">
+</form>
 {% endblock %}
