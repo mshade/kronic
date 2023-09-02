@@ -31,7 +31,8 @@ def _itemFields(response, fields=["name"]):
 def _cleanObject(api_object):
     """Convert API object to JSON and strip managedFields"""
     object = generic.sanitize_for_serialization(api_object)
-    object["metadata"].pop("managedFields")
+    if "managedFields" in object["metadata"]:
+        object["metadata"].pop("managedFields")
     return object
 
 
@@ -39,11 +40,8 @@ def _hasLabel(api_object, k, v):
     """Return True if a label is present with specified value"""
     metadata = api_object["metadata"]
     if "labels" in metadata:
-        print("object has labels")
         if k in metadata["labels"]:
-            print(f"{k} is one label")
             if metadata["labels"][k] == v:
-                print(f"{k} is set to {v}")
                 return True
     return False
 
@@ -55,7 +53,8 @@ def getCronJobs(namespace=""):
         cronjobs = batch.list_namespaced_cron_job(namespace=namespace)
 
     fields = ["name", "namespace"]
-    return _itemFields(cronjobs, fields)
+    sorted_cronjobs = sorted(_itemFields(cronjobs, fields), key=lambda x: x["name"])
+    return sorted_cronjobs
 
 
 def getCronJob(namespace, cronjob_name):
@@ -95,11 +94,9 @@ def getPods(namespace, job_name=None):
     pods = []
     if job_name:
         for pod in cleaned:
-            if pod["metadata"]["ownerReferences"][0]["name"] == job_name:
-                print(f"pod belongs to {job_name}")
-                pods.append(pod)
-            else:
-                print(f"pod {pod['metadata']['name']} does not belong to {job_name}")
+            if "ownerReferences" in pod["metadata"]:
+                if pod["metadata"]["ownerReferences"][0]["name"] == job_name:
+                    pods.append(pod)
     else:
         pods = cleaned
 
@@ -112,6 +109,7 @@ def getJobsAndPods(namespace, cronjob_name):
         job["pods"] = getPods(namespace, job["metadata"]["name"])
 
     return jobs
+
 
 def getPodLogs(namespace, pod_name):
     logs = v1.read_namespaced_pod_log(
@@ -161,4 +159,12 @@ def deleteCronJob(namespace, cronjob_name):
         deleted = batch.delete_namespaced_cron_job(cronjob_name, namespace)
     except ApiException:
         return False
-    return deleted
+    return _cleanObject(deleted)
+
+
+def deleteJob(namespace, job_name):
+    try:
+        deleted = batch.delete_namespaced_job(job_name, namespace)
+    except ApiException:
+        return False
+    return _cleanObject(deleted)
