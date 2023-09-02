@@ -3,7 +3,9 @@ version: "3"
 services:
   kronic:
     image: mshade/kronic
-    build: .
+    build:
+      context: .
+      target: dev
     volumes:
       - .:/app
       - $HOME/.kube:/root/.kube
