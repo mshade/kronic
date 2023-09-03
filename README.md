@@ -25,7 +25,7 @@ Get your hands dirty with the raw YAML to edit or duplicate a CronJob:
 CronJobs are a powerful tool, but I have found that developers and stakeholders often need an easy way to inspect the status of jobs,
 trigger them ad-hoc, or create a new one-off job based on existing CronJob definitions.
 
-Kronic aims to be a simple UI to view, suspend, trigger, edit, and delete CronJobs in a Kubernetes cluster.
+Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trigger, edit, and delete CronJobs in a Kubernetes cluster.
 
 ## Try it Out
 
