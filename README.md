@@ -2,6 +2,8 @@
 
 ![Kronic Logo](/static/android-chrome-192x192.png)
 
+![Build / Test](https://github.com/mshade/kronic/actions/workflows/build.yaml/badge.svg)
+
 The simple Kubernetes CronJob admin UI.
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
