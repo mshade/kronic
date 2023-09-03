@@ -1,3 +1,5 @@
+import os
+
 from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
@@ -6,12 +8,13 @@ import logging
 
 log = logging.getLogger("app.kron")
 
-try:
-    # Load configuration inside the Pod
-    config.load_incluster_config()
-except ConfigException:
-    # Load configuration from KUBECONFIG
-    config.load_kube_config()
+if not os.environ.get("KRONIC_TEST", False):
+    try:
+        # Load configuration inside the Pod
+        config.load_incluster_config()
+    except ConfigException:
+        # Load configuration from KUBECONFIG
+        config.load_kube_config()
 
 # Create the Api clients
 v1 = client.CoreV1Api()
