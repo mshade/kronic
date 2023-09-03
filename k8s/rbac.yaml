@@ -2,26 +2,26 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    kubernetes.io/metadata.name: kron
-    name: kron
-  name: kron
+    kubernetes.io/metadata.name: kronic
+    name: kronic
+  name: kronic
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/instance: kron
-    app.kubernetes.io/name: kron
-  name: kron
-  namespace: kron
+    app.kubernetes.io/instance: kronic
+    app.kubernetes.io/name: kronic
+  name: kronic
+  namespace: kronic
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/instance: kron
-    app.kubernetes.io/name: kron
-  name: kron
+    app.kubernetes.io/instance: kronic
+    app.kubernetes.io/name: kronic
+  name: kronic
 rules:
 - apiGroups:
   - ""
@@ -56,15 +56,41 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/instance: kron
-    app.kubernetes.io/name: kron
-  name: kron
+    app.kubernetes.io/instance: kronic
+    app.kubernetes.io/name: kronic
+  name: kronic
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kron
+  name: kronic
 subjects:
 - kind: ServiceAccount
-  name: kron
-  namespace: kron
+  name: kronic
+  namespace: kronic
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kronic
+  name: kronic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kronic
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kronic
+    spec:
+      containers:
+      - image: mshade/kronic:test
+        name: kronic
+        ports:
+        - containerPort: 8000
+        resources: {}
 ---

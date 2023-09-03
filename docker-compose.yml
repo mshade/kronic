@@ -8,6 +8,12 @@ services:
       target: dev
     volumes:
       - .:/app
-      - $HOME/.kube:/root/.kube
+      - $HOME/.kube/kronic.yaml:/root/.kube/config
     ports:
       - 5000:5000
+    networks:
+      - k3d-kronic
+
+networks:
+  k3d-kronic:
+    external: true

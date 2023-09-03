@@ -17,7 +17,7 @@ generic = client.ApiClient()
 
 
 def _itemFields(response, fields=["name"]):
-    """Filter the response down to only listed fields"""
+    """Filter the API object down to only the metadata fields listed"""
     itemFields = []
     for item in response.items:
         x = {}

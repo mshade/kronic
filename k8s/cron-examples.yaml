@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: hello1
+  namespace: test
 spec:
   jobTemplate:
     metadata:
@@ -23,6 +24,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: hello2
+  namespace: test
 spec:
   jobTemplate:
     metadata:
@@ -40,3 +42,49 @@ spec:
             resources: {}
           restartPolicy: OnFailure
   schedule: '* * * * *'
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: user-reports
+  namespace: prod
+spec:
+  jobTemplate:
+    metadata:
+      name: user-reports
+    spec:
+      template:
+        spec:
+          containers:
+          - command: ["/bin/ash", "-c"]
+            args:
+              - wget https://jsonplaceholder.typicode.com/users/ -O - -q --no-check-certificate
+            image: busybox
+            name: user-reports
+            resources: {}
+          restartPolicy: OnFailure
+  schedule: '*/10 * * * *'
+  suspend: true
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: example
+  namespace: prod
+spec:
+  jobTemplate:
+    metadata:
+      name: example
+    spec:
+      completions: 3
+      template:
+        spec:
+          containers:
+          - command:
+            - echo
+            - example
+            image: busybox
+            name: example
+            resources: {}
+          restartPolicy: OnFailure
+  schedule: 0/5 * * * *

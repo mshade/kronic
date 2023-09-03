@@ -1,0 +1,8 @@
+__pycache__
+.devcontainer
+.pytest_cache
+.vscode
+k8s/
+.git
+Dockerfile
+docker-compose.yml

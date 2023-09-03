@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{% block title %}Cronjobs in {{ namespace }} {% endblock %}</h1>
+<a href="/" role="button">«back</a>
+<h1>{% block title %}CronJobs in {{ namespace }} {% endblock %}</h1>
 {% for cronjob in cronjobs %}
 <div x-data="">
   <article>
@@ -9,19 +10,19 @@
       <tr>
         <th><strong>{{ cronjob.metadata.name }}</strong></th>
         <th>
-          <div role="button"
-            @click="apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'trigger', 'POST', '', true)">
-            Trigger Job Now
-          </div>
-        </th>
-        <th>
           <div x-data="{ suspended: {{cronjob.spec.suspend | lower }} }">
             <label>
-              Suspended
+              Job Suspended
               <input type="checkbox" role="switch"
                 @click="apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'suspend', 'POST', '')"
                 x-model="suspended" />
             </label>
+          </div>
+        </th>
+        <th>
+          <div role="button"
+            @click="apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'trigger', 'POST', '', true)">
+            Trigger
           </div>
         </th>
         <th>
@@ -39,12 +40,18 @@
     </table>
     <details id="{{cronjob.metadata.name}}-detail">
       <summary>details</summary>
-      <p>Image: <code>{{ cronjob.spec.jobTemplate.spec.template.spec.containers[0].image }}</code></p>
+      <p>image: <code>{{ cronjob.spec.jobTemplate.spec.template.spec.containers[0].image }}</code><br />
       {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
-      <p>Command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code></p>
+      command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code><br />
       {% endif %}
-      <p>Schedule: <code>{{ cronjob.spec.schedule }}</code></p>
-      <p>Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code></p>
+      {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].args %}
+      args: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].args | join(' ') }}</code><br />
+      {% endif %}
+      schedule: <code>{{ cronjob.spec.schedule }}</code><br />
+      Last Scheduled: <code>{{ cronjob.status.lastScheduleTime }}</code><br />
+      {% if cronjob.status.lastSuccessfulTime %}
+      Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code><br /></p>
+      {% endif %}
       <p>Jobs and Pods</p>
       <div x-cloak x-data="{jobs: [], isLoading: true}" x-init="async () => {
                 const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs');
@@ -66,7 +73,7 @@
                       <details x-on:click="getLogs('{{namespace}}', pod.metadata.name); this.onclick=null;">
                         <summary class="secondary">logs</summary>
                         <template x-if="logs">
-                          <code x-text="logs"></code>
+                          <code><pre x-text="logs"></pre></code>
                         </template>
                       </details>
                     </div>
