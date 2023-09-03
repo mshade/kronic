@@ -123,7 +123,11 @@ def apiToggleSuspended(namespace, cronjob_name):
 def apiTriggerJob(namespace, cronjob_name):
     """Manually trigger a job from <cronjob_name>"""
     cronjob = triggerCronJob(namespace, cronjob_name)
-    return cronjob
+    status = 200
+    if "error" in cronjob:
+        status = cronjob["error"]
+
+    return cronjob, status
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/getJobs")

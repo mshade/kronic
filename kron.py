@@ -2,6 +2,9 @@ from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
+import logging
+
+log = logging.getLogger('app.kron')
 
 try:
     # Load configuration inside the Pod
@@ -40,13 +43,11 @@ def _getTimeSince(datestring):
     # pod startTime format
     date = datetime.fromisoformat(datestring)
     since = datetime.now(timezone.utc) - date
-    print(f'since: {since.seconds}')
     d = since.seconds // (3600 * 24)
     h = since.seconds // 3600 % 24
     m = since.seconds % 3600 // 60
     s = since.seconds % 3600 % 60
 
-    print(f'{d}d {h}h {m}m {s}s')
     if d > 0:
         return f'{d}d {h}h {m}m {s}s'
     elif h > 0:
@@ -154,7 +155,7 @@ def getPodLogs(namespace, pod_name):
 def triggerCronJob(namespace, cronjob_name):
     cronjob = batch.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
     job = cronjob.spec.job_template
-    date_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S-%f")
+    date_stamp = datetime.now().strftime("%Y%m%d%H%M%S-%f")
     # Set a unique name that indicates this is a manual invocation
     job.metadata.name = str(job.metadata.name[:16] + "-manual-" + date_stamp)[:63]
     # Set a label to identify jobs created by kron
@@ -163,7 +164,19 @@ def triggerCronJob(namespace, cronjob_name):
         "kron.mshade.org/created-from": cronjob_name,
     }
 
-    trigger_job = batch.create_namespaced_job(body=job, namespace=namespace)
+    try:
+        trigger_job = batch.create_namespaced_job(body=job, namespace=namespace)
+    except ApiException as e:
+        log.error(e)
+        response = {
+            "error": 500,
+            "exception": {
+                "status": e.status,
+                "reason": e.reason,
+                "message": e.body["message"]
+            }
+        }
+        return response
     return _cleanObject(trigger_job)
 
 
