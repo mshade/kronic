@@ -28,17 +28,7 @@ rules:
   resources:
   - pods
   - events
-  - persistentvolumes
-  - persistentvolumeclaims
-  - persistentvolumeclaims/status
-  - nodes
-  - proxy/nodes
   - pods/log
-  - secrets
-  - services
-  - endpoints
-  - configmaps
-  - serviceaccounts
   - namespaces
   verbs:
   - get
@@ -87,10 +77,30 @@ spec:
       labels:
         app: kronic
     spec:
+      serviceAccountName: kronic
       containers:
       - image: mshade/kronic:test
+        imagePullPolicy: Always
         name: kronic
         ports:
         - containerPort: 8000
         resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kronic
+  name: kronic
+  namespace: kronic
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: kronic
+status:
+  loadBalancer: {}
 ---
