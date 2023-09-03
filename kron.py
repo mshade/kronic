@@ -1,7 +1,7 @@
 from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
-import datetime
+from datetime import datetime, timezone
 
 try:
     # Load configuration inside the Pod
@@ -35,6 +35,28 @@ def _cleanObject(api_object):
         object["metadata"].pop("managedFields")
     return object
 
+
+def _getTimeSince(datestring):
+    # pod startTime format
+    date = datetime.fromisoformat(datestring)
+    since = datetime.now(timezone.utc) - date
+    print(f'since: {since.seconds}')
+    d = since.seconds // (3600 * 24)
+    h = since.seconds // 3600 % 24
+    m = since.seconds % 3600 // 60
+    s = since.seconds % 3600 % 60
+
+    print(f'{d}d {h}h {m}m {s}s')
+    if d > 0:
+        return f'{d}d {h}h {m}m {s}s'
+    elif h > 0:
+        return f'{h}h {m}m {s}s'
+    elif m > 0:
+        return f'{m}m {s}s'
+    elif s > 0:
+        return f'{s}s'
+    
+    return 
 
 def _hasLabel(api_object, k, v):
     """Return True if a label is present with specified value"""
@@ -74,8 +96,8 @@ def getNamespaces():
 def getJobs(namespace, cronjob_name):
     jobs = batch.list_namespaced_job(namespace=namespace)
     cleaned = [_cleanObject(job) for job in jobs.items]
+    filtered = []
     if cronjob_name:
-        filtered = []
         for job in cleaned:
             if "ownerReferences" in job["metadata"]:
                 if job["metadata"]["ownerReferences"][0]["name"] == cronjob_name:
@@ -84,6 +106,9 @@ def getJobs(namespace, cronjob_name):
                 filtered.append(job)
     else:
         filtered = cleaned
+
+    for job in filtered:
+        job["status"]["age"] = _getTimeSince(job["status"]["startTime"])
 
     return filtered
 
@@ -100,6 +125,9 @@ def getPods(namespace, job_name=None):
     else:
         pods = cleaned
 
+    for pod in pods:
+        pod["status"]["age"] = _getTimeSince(pod["status"]["startTime"])
+
     return pods
 
 
@@ -112,9 +140,14 @@ def getJobsAndPods(namespace, cronjob_name):
 
 
 def getPodLogs(namespace, pod_name):
-    logs = v1.read_namespaced_pod_log(
-        pod_name, namespace, tail_lines=1000, timestamps=True
-    )
+    """Return plain text logs for <pod_name> in <namespace>"""
+    try:
+        logs = v1.read_namespaced_pod_log(
+            pod_name, namespace, tail_lines=1000, timestamps=True
+        )
+    except ApiException as e:
+        if e.status == 404:
+            return f"Kronic> Error fetching logs: {e.reason}"
     return logs
 
 
@@ -123,7 +156,7 @@ def triggerCronJob(namespace, cronjob_name):
     job = cronjob.spec.job_template
     date_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S-%f")
     # Set a unique name that indicates this is a manual invocation
-    job.metadata.name = str(job.metadata.name + "-manual-" + date_stamp)[:64]
+    job.metadata.name = str(job.metadata.name[:16] + "-manual-" + date_stamp)[:63]
     # Set a label to identify jobs created by kron
     job.metadata.labels = {
         "kron.mshade.org/manually-triggered": "true",

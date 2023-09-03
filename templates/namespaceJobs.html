@@ -4,11 +4,24 @@
 <a href="/" role="button">«back</a>
 <h1>{% block title %}CronJobs in {{ namespace }} {% endblock %}</h1>
 {% for cronjob in cronjobs %}
-<div x-data="">
+<div x-cloak x-data="{jobs: [], isLoading: true, failing: false}" x-init="async () => {
+  const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs')
+    .then( jobsArray => {
+      jobs = jobsArray;
+      isLoading = false;
+      for (let job in jobsArray) {
+        if (jobsArray[job].status.failed) {
+          failing = true;
+        }
+      }
+    });
+  };
+  ">
   <article>
     <table>
       <tr>
         <th><strong>{{ cronjob.metadata.name }}</strong></th>
+        <th><strong x-show="failing" style="color:red">Failures!</strong></th>
         <th>
           <div x-data="{ suspended: {{cronjob.spec.suspend | lower }} }">
             <label>
@@ -26,6 +39,9 @@
           </div>
         </th>
         <th>
+          <a role="button" href="/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}">Edit</a>
+        </th>
+        <th>
           <div x-data="">
             <div role="button"
               @click="confirm('Are you sure?') ? apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'delete', 'POST', '', true) : false;">
@@ -33,58 +49,56 @@
             </div>
           </div>
         </th>
-        <th>
-          <a role="button" href="/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}">Edit</a>
-        </th>
       </tr>
     </table>
     <details id="{{cronjob.metadata.name}}-detail">
       <summary>details</summary>
       <p>image: <code>{{ cronjob.spec.jobTemplate.spec.template.spec.containers[0].image }}</code><br />
-      {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
-      command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code><br />
-      {% endif %}
-      {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].args %}
-      args: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].args | join(' ') }}</code><br />
-      {% endif %}
-      schedule: <code>{{ cronjob.spec.schedule }}</code><br />
-      Last Scheduled: <code>{{ cronjob.status.lastScheduleTime }}</code><br />
-      {% if cronjob.status.lastSuccessfulTime %}
-      Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code><br /></p>
+        {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
+        command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code><br />
+        {% endif %}
+        {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].args %}
+        args: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].args | join(' ') }}</code><br />
+        {% endif %}
+        schedule: <code>{{ cronjob.spec.schedule }}</code><br />
+        Last Scheduled: <code>{{ cronjob.status.lastScheduleTime }}</code><br />
+        {% if cronjob.status.lastSuccessfulTime %}
+        Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code><br /></p>
       {% endif %}
       <p>Jobs and Pods</p>
-      <div x-cloak x-data="{jobs: [], isLoading: true}" x-init="async () => {
-                const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs');
-                jobs = response;
-                isLoading = false;
-               }">
-        <p>
-        <ul>
-          <template x-for="job in jobs">
-            <div>
-              <li><code x-text="job.metadata.name"></code> <a href="#{{cronjob.metadata.name}}-detail"
-                  @click="confirm('Are you sure?') ? apiClient('{{namespace}}', 'jobs', job.metadata.name, 'delete', 'POST', '', true) : false;">[delete]</a>
-              </li>
-              <ul>
-                <template x-for="pod in job.pods">
-                  <div>
-                    <li><code x-text="pod.metadata.name"></code></li>
-                    <div x-data="fetchLogs()">
-                      <details x-on:click="getLogs('{{namespace}}', pod.metadata.name); this.onclick=null;">
-                        <summary class="secondary">logs</summary>
-                        <template x-if="logs">
-                          <code><pre x-text="logs"></pre></code>
-                        </template>
-                      </details>
-                    </div>
+      <p>
+      <ul>
+        <template x-for="job in jobs">
+          <div>
+            <li><code x-text="job.metadata.name"></code>
+              <span x-text="'Age: ' + job.status.age"></span>
+              <span x-show="job.status.failed" style="color:red">Failed!</span>
+              <a href="#{{cronjob.metadata.name}}-detail"
+                @click="confirm('Are you sure?') ? apiClient('{{namespace}}', 'jobs', job.metadata.name, 'delete', 'POST', '', true) : false;">
+                [delete]</a>
+            </li>
+            <ul>
+              <template x-for="pod in job.pods">
+                <div>
+                  <li>
+                    <code x-text="pod.metadata.name"></code>
+                    <span x-text="'Age: ' + pod.status.age"></span>
+                  </li>
+                  <div x-data="fetchLogs()">
+                    <details x-on:click="getLogs('{{namespace}}', pod.metadata.name); this.onclick=null;">
+                      <summary class="secondary">logs</summary>
+                      <template x-if="logs">
+                        <code><pre x-text="logs"></pre></code>
+                      </template>
+                    </details>
                   </div>
-                </template>
-              </ul>
-            </div>
-          </template>
-        </ul>
-        </p>
-      </div>
+                </div>
+              </template>
+            </ul>
+          </div>
+        </template>
+      </ul>
+      </p>
     </details>
   </article>
 </div>
