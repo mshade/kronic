@@ -47,6 +47,8 @@ Kronic is a small Flask app built with:
 ## Todo
 
 - [ ] Allow/Deny lists for namespaces
+- [ ] YAML/Spec Validation on Edit page
+- [ ] Async refreshing of job/pods
 - [ ] Error handlig for js apiClient
 - [ ] Better logging from Flask app and Kron module
 - [ ] More unit tests
