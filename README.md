@@ -42,3 +42,15 @@ Kronic is a small Flask app built with:
 - gunicorn
 - [AlpineJS](https://alpinejs.dev/)
 - [PicoCSS](https://picocss.com/)
+
+
+## Todo
+
+- [ ] Allow/Deny lists for namespaces
+- [ ] Error handlig for js apiClient
+- [ ] Better logging from Flask app and Kron module
+- [ ] More unit tests
+- [ ] Integration tests against ephemeral k3d cluster
+- [ ] CI/CD pipeline and versioning
+- [ ] Helm chart
+- [ ] Improve localdev stack with automated k3d cluster provisioning
