@@ -11,13 +11,13 @@ Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
 See CronJobs across namespaces:
 ![Homepage](/.github/kronic-home.png)
 
-View CrobJobs at a glance:
+View, suspend, trigger, or delete CrobJobs at a glance:
 ![Cronjobs in a Namespace](/.github/kronic-namespace.png)
 
 Drill down into details to see the status of jobs and pods:
 ![Cronjob Detail view](/.github/kronic-detail.png)
 
-Get your hands dirty with the raw YAML:
+Get your hands dirty with the raw YAML to edit or duplicate a CronJob:
 ![Cronjob Edit view](/.github/kronic-edit.png)
 
 ## Purpose
