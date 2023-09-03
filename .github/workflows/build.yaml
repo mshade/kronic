@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Deps
-        run: docker build . --target dev ${IMAGE_NAME}:test
+        run: docker build --target dev -t ${IMAGE_NAME}:test .
 
       - name: Run Unit Tests
         run: docker run -i --rm -v $PWD:/app ${IMAGE_NAME}:test pytest
