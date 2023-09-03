@@ -23,24 +23,25 @@ metadata:
     app.kubernetes.io/name: kronic
   name: kronic
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - events
-  - pods/log
-  - namespaces
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - batch
-  resources:
-  - jobs
-  - cronjobs
-  verbs:
-  - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - events
+      - pods/log
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+      - cronjobs
+      - cronjobs/status
+    verbs:
+      - "*"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -54,14 +55,13 @@ roleRef:
   kind: ClusterRole
   name: kronic
 subjects:
-- kind: ServiceAccount
-  name: kronic
-  namespace: kronic
+  - kind: ServiceAccount
+    name: kronic
+    namespace: kronic
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: kronic
   name: kronic
@@ -73,34 +73,49 @@ spec:
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: kronic
     spec:
       serviceAccountName: kronic
       containers:
-      - image: mshade/kronic:test
-        imagePullPolicy: Always
-        name: kronic
-        ports:
-        - containerPort: 8000
-        resources: {}
+        - image: mshade/kronic:test
+          imagePullPolicy: Always
+          name: kronic
+          ports:
+            - containerPort: 8000
+          resources: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     app: kronic
   name: kronic
   namespace: kronic
 spec:
   ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 80
+    - port: 80
+      protocol: TCP
+      targetPort: 8000
   selector:
     app: kronic
-status:
-  loadBalancer: {}
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: kronic
+  name: kronic
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kronic.local.mshade.org
+      http:
+        paths:
+          - backend:
+              service:
+                name: kronic
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
