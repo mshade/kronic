@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<a role="button" href="/namespaces/{{cronjob.metadata.namespace}}">«back to {{cronjob.metadata.namespace}}</a>
+<a href="/namespaces/{{cronjob.metadata.namespace}}">«back to {{cronjob.metadata.namespace}}</a>
 <h2>{% block title %}Editing {{cronjob.metadata.name}} in {{cronjob.metadata.namespace}}{% endblock %}</h2>
 <form action="/namespaces/{{cronjob.metadata.namespace}}/cronjobs/{{cronjob.metadata.name}}" method="post">
   <p>To create a new CronJob from this one, change the <code>name</code> fields as desired</p>
