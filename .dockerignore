@@ -1,6 +1,6 @@
-__pycache__
+*/__pycache__/
 .devcontainer
-.pytest_cache
+*/.pytest_cache
 .vscode
 k8s/
 .git
