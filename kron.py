@@ -4,7 +4,7 @@ from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
 import logging
 
-log = logging.getLogger('app.kron')
+log = logging.getLogger("app.kron")
 
 try:
     # Load configuration inside the Pod
@@ -49,15 +49,16 @@ def _getTimeSince(datestring):
     s = since.seconds % 3600 % 60
 
     if d > 0:
-        return f'{d}d {h}h {m}m {s}s'
+        return f"{d}d {h}h {m}m {s}s"
     elif h > 0:
-        return f'{h}h {m}m {s}s'
+        return f"{h}h {m}m {s}s"
     elif m > 0:
-        return f'{m}m {s}s'
+        return f"{m}m {s}s"
     elif s > 0:
-        return f'{s}s'
-    
-    return 
+        return f"{s}s"
+
+    return
+
 
 def _hasLabel(api_object, k, v):
     """Return True if a label is present with specified value"""
@@ -173,8 +174,8 @@ def triggerCronJob(namespace, cronjob_name):
             "exception": {
                 "status": e.status,
                 "reason": e.reason,
-                "message": e.body["message"]
-            }
+                "message": e.body["message"],
+            },
         }
         return response
     return _cleanObject(trigger_job)

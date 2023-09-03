@@ -1,3 +1,4 @@
+boltons
 flask
 gunicorn
 kubernetes

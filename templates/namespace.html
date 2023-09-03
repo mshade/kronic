@@ -4,7 +4,7 @@
 <a href="/">«back</a>
 <h1>{% block title %}CronJobs in {{ namespace }} {% endblock %}</h1>
 {% for cronjob in cronjobs %}
-<div x-cloak x-data="{jobs: [], isLoading: true, failing: false}" x-init="async () => {
+<div x-cloak x-data="{jobs: [], isLoading: true, failing: false, cloneJobName: null}" x-init="async () => {
   const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs')
     .then( jobsArray => {
       jobs = jobsArray;
@@ -42,11 +42,21 @@
           <a role="button" href="/namespaces/{{namespace}}/cronjobs/{{cronjob.metadata.name}}">Edit</a>
         </th>
         <th>
-          <div x-data="">
-            <div role="button"
-              @click="confirm('Are you sure?') ? apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'delete', 'POST', '', true) : false;">
-              Delete
-            </div>
+          <div role="button"
+            @click="cloneJobName = prompt('New CronJob Name:', '{{cronjob.metadata.name}}');
+              let data = JSON.stringify({name: cloneJobName});
+              console.log(data);
+              apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'clone', 'POST', data, false)
+              .then(response => {
+                window.location.href = `/namespaces/{{namespace}}/cronjobs/${cloneJobName}`;
+              });">
+            Clone
+          </div>
+        </th>
+        <th>
+          <div role="button"
+            @click="confirm('Are you sure?') ? apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'delete', 'POST', '', true) : false;">
+            Delete
           </div>
         </th>
       </tr>

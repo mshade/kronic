@@ -1,4 +1,6 @@
 from flask import Flask, request, render_template, redirect
+from boltons.iterutils import remap
+
 import yaml
 
 from kron import (
@@ -17,6 +19,25 @@ from kron import (
 )
 
 app = Flask(__name__, static_url_path="", static_folder="static")
+
+
+def _strip_immutable_fields(spec):
+    try:
+        del spec["status"]
+    except KeyError:
+        pass
+
+    try:
+        del spec["metadata"]["uid"]
+    except KeyError:
+        pass
+
+    try:
+        del spec["metadata"]["resourceVersion"]
+    except KeyError:
+        pass
+
+    return spec
 
 
 @app.route("/")
@@ -45,7 +66,7 @@ def namespaceView(name):
                 cron["metadata"]["namespace"], job["metadata"]["name"]
             )
 
-    return render_template("namespaceJobs.html", cronjobs=cronjobs, namespace=name)
+    return render_template("namespace.html", cronjobs=cronjobs, namespace=name)
 
 
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
@@ -61,20 +82,18 @@ def cronjobView(namespace, cronjob_name):
     else:
         cronjob = getCronJob(namespace, cronjob_name)
 
-    del cronjob["status"]
-    del cronjob["metadata"]["uid"]
-    del cronjob["metadata"]["resourceVersion"]
+    if cronjob:
+        cronjob = _strip_immutable_fields(cronjob)
+    else:
+        cronjob = {
+            "apiVersion": "batch/v1",
+            "kind": "CronJob",
+            "metadata": {"name": cronjob_name, "namespace": namespace},
+            "spec": {},
+        }
 
     cronjob_yaml = yaml.dump(cronjob)
     return render_template("cronjob.html", cronjob=cronjob, yaml=cronjob_yaml)
-
-
-@app.route(
-    "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
-)
-def apiDeleteCronJob(namespace, cronjob_name):
-    deleted = deleteCronJob(namespace, cronjob_name)
-    return deleted
 
 
 @app.route("/api/")
@@ -100,6 +119,35 @@ def apiNamespaceCronjobs(namespace):
 def apiGetCronJob(namespace, cronjob_name):
     cronjob = getCronJob(namespace, cronjob_name)
     return cronjob
+
+
+@app.route(
+    "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/clone", methods=["POST"]
+)
+def apiCloneCronJob(namespace, cronjob_name):
+    cronjob_spec = getCronJob(namespace, cronjob_name)
+    new_name = request.json["name"]
+    cronjob_spec["metadata"]["name"] = new_name
+    cronjob_spec["spec"]["jobTemplate"]["metadata"]["name"] = new_name
+    cronjob_spec = _strip_immutable_fields(cronjob_spec)
+    print(cronjob_spec)
+    cronjob = updateCronJob(namespace, cronjob_spec)
+    return cronjob
+
+
+@app.route("/api/namespaces/<namespace>/cronjobs/create", methods=["POST"])
+def apiCreateCronJob(namespace):
+    cronjob_spec = request.json["data"]
+    cronjob = updateCronJob(namespace, cronjob_spec)
+    return cronjob
+
+
+@app.route(
+    "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
+)
+def apiDeleteCronJob(namespace, cronjob_name):
+    deleted = deleteCronJob(namespace, cronjob_name)
+    return deleted
 
 
 @app.route(
