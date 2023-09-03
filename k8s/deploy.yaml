@@ -78,12 +78,18 @@ spec:
     spec:
       serviceAccountName: kronic
       containers:
-        - image: mshade/kronic:test
+        - image: ghcr.io/mshade/kronic:latest
           imagePullPolicy: Always
           name: kronic
           ports:
             - containerPort: 8000
-          resources: {}
+          resources:
+            limits:
+              cpu: 1
+              memory: 1024Mi
+            requests:
+              cpu: 10m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
