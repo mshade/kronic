@@ -8,19 +8,21 @@ The simple Kubernetes CronJob admin UI.
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
 
+
 ## Screenshots
 
 See CronJobs across namespaces:
 ![Homepage](/.github/kronic-home.png)
 
-View, suspend, trigger, or delete CrobJobs at a glance:
+View, suspend, trigger, clone, or delete CrobJobs at a glance:
 ![Cronjobs in a Namespace](/.github/kronic-namespace.png)
 
 Drill down into details to see the status of jobs and pods:
 ![Cronjob Detail view](/.github/kronic-detail.png)
 
-Get your hands dirty with the raw YAML to edit or duplicate a CronJob:
+Get your hands dirty with the raw YAML to edit a CronJob:
 ![Cronjob Edit view](/.github/kronic-edit.png)
+
 
 ## Purpose
 
@@ -28,6 +30,7 @@ CronJobs are a powerful tool, but I have found that developers and stakeholders 
 trigger them ad-hoc, or create a new one-off job based on existing CronJob definitions.
 
 Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trigger, edit, and delete CronJobs in a Kubernetes cluster.
+
 
 ## Try it Out
 
@@ -37,10 +40,11 @@ To run in-cluster, edit and apply [k8s/deploy.yaml](/k8s/deploy.yaml). Adjust th
 
 To run locally, you can use `docker compose up` or install the Python dependencies and run natively. The compose file expects a valid kubeconfig at `~/.kube/kronic.yaml`.
 
+
 ## Design
 
 Kronic is a small Flask app built with:
-- the kubernetes Python client
+- the Python Kubernetes client
 - gunicorn
 - [AlpineJS](https://alpinejs.dev/)
 - [PicoCSS](https://picocss.com/)
