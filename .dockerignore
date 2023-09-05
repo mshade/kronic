@@ -1,8 +1,8 @@
-*/__pycache__/
-.devcontainer
-*/.pytest_cache
+.git*
 .vscode
-k8s/
-.git
-Dockerfile
+*/__pycache__/
+**/.pytest_cache
 docker-compose.yml
+Dockerfile
+k8s/
+renovate.json
