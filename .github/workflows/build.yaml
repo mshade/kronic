@@ -2,6 +2,9 @@ name: Build / Test
 
 on:
   push:
+    paths-ignore:
+      - 'k8s/**'
+      - 'chart/**'
 
 env:
   REGISTRY: ghcr.io
