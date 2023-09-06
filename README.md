@@ -34,7 +34,7 @@ Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trig
 
 ## Deploying to K8S
 
-A helm chart is provided at [./chart/kronic](./chart/kronic/). By default Kronic will provide only a `ClusterIP` service. See the [values.yaml](./chart/kronic/values.yaml) for some tweakable settings, most notably `ingress` definition. 
+A helm chart is provided at [./chart/kronic](./chart/kronic/). By default the Kronic helm chart will provide only a `ClusterIP` service. See the [values.yaml](./chart/kronic/values.yaml) for some tweakable settings, most notably `ingress` definition. 
 
 > **Warning**
 > Avoid exposing Kronic publicly! The ingress configuration allows for basic authentication, but
