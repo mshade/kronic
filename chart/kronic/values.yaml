@@ -1,0 +1,82 @@
+# Default values for kronic.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/mshade/kronic
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+# Specify whether to create ClusterRole and ClusterRoleBinding
+# for kronic. If disabled, you will need to handle permissions
+# manually.
+rbac:
+  enabled: true
+
+serviceAccount:
+  # Specifies whether the kronic service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # name: "kronic"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  # Enable basic auth for ingress-nginx. For other auth types or ingress controllers, annotate manually as needed
+  auth:
+    enabled: true
+    # secretName: <provide-your-own-htpasswd-secret>
+    username: kronic
+    password: "Sup3rS3cr3t"
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: kronic-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1024Mi
+  requests:
+    cpu: 10m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
