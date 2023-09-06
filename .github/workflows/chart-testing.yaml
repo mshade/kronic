@@ -7,7 +7,7 @@ on:
       - '.github/workflows/chart-testing.yaml'
 
 jobs:
-  lint-test:
+  lint-test-chart:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,3 +39,35 @@ jobs:
           ct install --chart-dirs chart \
             --helm-extra-args '--timeout 60s' \
             --target-branch ${{ github.event.repository.default_branch }}
+
+  release-chart:
+    if: github.ref == 'refs/heads/main'
+    needs: lint-test
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      
+      - name: Generate Chart Readme
+        run: |
+          docker run --rm -v "$(pwd)/chart:/helm-docs" jnorwood/helm-docs@sha256:e438eb9f879e4bb8389ce4acd0f7e9193e3d62e877a1a3cd5abd0393dbe55fe5
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: ./chart
+        env:
+          CR_SKIP_EXISTING: "true"
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
