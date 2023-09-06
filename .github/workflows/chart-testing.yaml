@@ -42,7 +42,7 @@ jobs:
 
   release-chart:
     if: github.ref == 'refs/heads/main'
-    needs: lint-test
+    needs: lint-test-chart
     permissions:
       contents: write
     runs-on: ubuntu-latest
