@@ -113,9 +113,9 @@ metadata:
     app: kronic
   name: kronic
 spec:
-  ingressClassName: nginx
+  ingressClassName: ""
   rules:
-    - host: kronic.local.mshade.org
+    - host: kronic-example.local
       http:
         paths:
           - backend:

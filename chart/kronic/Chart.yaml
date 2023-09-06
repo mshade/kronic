@@ -1,0 +1,12 @@
+apiVersion: v2
+name: kronic
+description: Kronic - The simple Kubernetes CronJob Admin UI
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+maintainers:
+  - name: mshade
+    email: mshade@mshade.org
+    url: https://github.com/mshade
+annotations:
+  artifacthub.io/category: monitoring-logging
