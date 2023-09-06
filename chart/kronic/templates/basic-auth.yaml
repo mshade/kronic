@@ -1,0 +1,11 @@
+{{- if and .Values.ingress.enabled .Values.ingress.auth.enabled }}
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: {{ include "kronic.fullname" . }}-auth
+  labels:
+    {{- include "kronic.labels" . | nindent 4 }}
+data:
+  auth: {{ htpasswd .Values.ingress.auth.username .Values.ingress.auth.password | b64enc | quote }}
+{{- end }}
