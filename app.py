@@ -50,6 +50,9 @@ def index():
 
     return render_template("index.html", namespaces=namespaces)
 
+@app.route("/healthz")
+def healthz():
+    return {"status": "ok"}
 
 @app.route("/namespaces/<name>")
 def namespaceView(name):
