@@ -32,13 +32,35 @@ trigger them ad-hoc, or create a new one-off job based on existing CronJob defin
 Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trigger, edit, and delete CronJobs in a Kubernetes cluster.
 
 
-## Try it Out
+## Deploying to K8S
 
-Kronic can run in-cluster or locally using `KUBECONFIG` for kubernetes API access.
+A helm chart is provided at [./chart/kronic](./chart/kronic/). By default Kronic will provide only a `ClusterIP` service. See the [values.yaml](./chart/kronic/values.yaml) for some tweakable settings, most notably `ingress` definition. 
 
-To run in-cluster, edit and apply [k8s/deploy.yaml](/k8s/deploy.yaml). Adjust the RBAC rules, ingress, and other details as you see fit.
+> **Warning**
+> Avoid exposing Kronic publicly! The ingress configuration allows for basic authentication, but
+> this is only minimal protection. Best practice would be to use a privately routed ingress class
+> or other network-level protections.
 
-To run locally, you can use `docker compose up` or install the Python dependencies and run natively. The compose file expects a valid kubeconfig at `~/.kube/kronic.yaml`.
+To install Kronic, clone this repository and run:
+
+```
+helm install -n kronic --create-namespace kronic ./chart/kronic
+```
+
+
+## Running Locally
+
+Kronic can use a `KUBECONFIG` file to run locally against a cluster. To do so:
+
+```
+docker run -i --name kronic \
+    -v $HOME/.kube:/home/kronic/.kube \
+    -p 8000:8000 \
+    ghcr.io/mshade/kronic
+```
+
+> **Note**
+> You may need to ensure permissions on the kubeconfig file are readable to the `kronic` user (uid 3000). You may also mount a specific kubeconfig file into place, ie: `-v $HOME/.kube/kronic.yaml:/home/kronic/.kube/config`
 
 
 ## Design
@@ -53,6 +75,7 @@ Kronic is a small Flask app built with:
 ## Todo
 
 - [ ] Allow/Deny lists for namespaces
+- [ ] Timeline / Cron schedule interpreter or display
 - [ ] YAML/Spec Validation on Edit page
 - [ ] Async refreshing of job/pods
 - [ ] Error handlig for js apiClient
@@ -60,5 +83,5 @@ Kronic is a small Flask app built with:
 - [ ] More unit tests
 - [ ] Integration tests against ephemeral k3d cluster
 - [ ] CI/CD pipeline and versioning
-- [ ] Helm chart
+- [x] Helm chart
 - [ ] Improve localdev stack with automated k3d cluster provisioning
