@@ -5,7 +5,7 @@ image:
   repository: ghcr.io/mshade/kronic
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: ""
 
 # Specify whether to create ClusterRole and ClusterRoleBinding
 # for kronic. If disabled, you will need to handle permissions
