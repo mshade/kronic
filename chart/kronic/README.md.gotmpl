@@ -1,0 +1,23 @@
+{{ template "chart.header" . }}
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
+
+By default the Kronic helm chart will provide only a `ClusterIP` service. See the [values.yaml](./values.yaml) for some tweakable settings, most notably `ingress` definition. 
+
+> **Warning**
+> Avoid exposing Kronic publicly! The ingress configuration allows for basic authentication, but
+> this is only minimal protection. Ensure you change `ingress.auth.password` from the default.
+> Best practice would be to use a privately routed ingress class or other network-level protections.
+> You may also provide your own basic auth secret using `ingress.auth.secretName`. See [Ingress docs](https://kubernetes.github.io/ingress-nginx/examples/auth/basic/) on creation.
+
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
