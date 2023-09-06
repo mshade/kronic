@@ -1,0 +1,5 @@
+ingress:
+  enabled: true
+  auth:
+    enabled: true
+    secretName: custom-basic-auth

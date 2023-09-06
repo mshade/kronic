@@ -38,8 +38,9 @@ A helm chart is provided at [./chart/kronic](./chart/kronic/). By default Kronic
 
 > **Warning**
 > Avoid exposing Kronic publicly! The ingress configuration allows for basic authentication, but
-> this is only minimal protection. Best practice would be to use a privately routed ingress class
-> or other network-level protections.
+> this is only minimal protection. Ensure you change `ingress.auth.password` from the default.
+> Best practice would be to use a privately routed ingress class or other network-level protections.
+> You may also provide your own basic auth secret using `ingress.auth.secretName`. See [Ingress docs](https://kubernetes.github.io/ingress-nginx/examples/auth/basic/) on creation.
 
 To install Kronic, clone this repository and run:
 

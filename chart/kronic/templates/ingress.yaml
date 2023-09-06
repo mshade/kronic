@@ -25,7 +25,7 @@ metadata:
   {{- end }}
   {{- if .Values.ingress.auth.enabled }}
     nginx.ingress.kubernetes.io/auth-type: basic
-    nginx.ingress.kubernetes.io/auth-secret: {{ include "kronic.fullname" . }}-auth
+    nginx.ingress.kubernetes.io/auth-secret: {{ .Values.ingress.auth.secretName | default (include "kronic.fullname" .) }}
     nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Kronic'
   {{- end }}
   {{- end }}

@@ -43,6 +43,7 @@ ingress:
   # Enable basic auth for ingress-nginx. For other auth types or ingress controllers, annotate manually as needed
   auth:
     enabled: true
+    # secretName: <provide-your-own-htpasswd-secret>
     username: kronic
     password: "Sup3rS3cr3t"
   className: ""

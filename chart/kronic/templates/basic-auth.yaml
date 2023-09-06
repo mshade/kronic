@@ -1,9 +1,9 @@
-{{- if and .Values.ingress.enabled .Values.ingress.auth.enabled }}
+{{- if and (and .Values.ingress.enabled .Values.ingress.auth.enabled) (not .Values.ingress.auth.secretName) }}
 apiVersion: v1
 kind: Secret
 type: Opaque
 metadata:
-  name: {{ include "kronic.fullname" . }}-auth
+  name: {{ include "kronic.fullname" . }}
   labels:
     {{- include "kronic.labels" . | nindent 4 }}
 data:
