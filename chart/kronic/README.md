@@ -4,7 +4,7 @@ Kronic - The simple Kubernetes CronJob Admin UI
 
 **Homepage:** <https://github.com/mshade/kronic>
 
-![Version: 0.1.3-alpha1](https://img.shields.io/badge/Version-0.1.3--alpha1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.0-alpha](https://img.shields.io/badge/AppVersion-v0.1.0--alpha-informational?style=flat-square)
+![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.0](https://img.shields.io/badge/AppVersion-v0.1.0-informational?style=flat-square)
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
 Avoid exposing Kronic to untrusted parties or networks.
