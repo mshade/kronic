@@ -28,10 +28,11 @@ To install Kronic as `kronic` in its own namespace:
 ```
 helm repo add kronic https://mshade.github.io/kronic/
 helm repo update
+
 # Optionally fetch and customize values file
 helm show values kronic/kronic > myvalues.yaml
 
-helm install -n kronic --create-namespace kronic kronic/kronic
+helm install -n kronic --create-namespace kronic kronic/kronic -f myvalues.yaml
 ```
 
 If no ingress is configured (see warning above!), expose Kronic via `kubectl port-forward` and access `localhost:8000` in your browser:
