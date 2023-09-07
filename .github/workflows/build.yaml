@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - 'k8s/**'
       - 'chart/**'
+      - '.github/workflows/chart-testing.yaml'
 
 env:
   REGISTRY: ghcr.io
