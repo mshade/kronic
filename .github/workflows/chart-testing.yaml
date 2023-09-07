@@ -69,5 +69,5 @@ jobs:
         with:
           charts_dir: ./chart
         env:
-          CR_SKIP_EXISTING: "true"
+          # CR_SKIP_EXISTING: "true"
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
