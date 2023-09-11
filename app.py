@@ -23,10 +23,8 @@ app = Flask(__name__, static_url_path="", static_folder="static")
 def _strip_immutable_fields(spec):
     spec.pop("status", None)
     metadata = spec.get("metadata", {})
-
     metadata.pop("uid", None)
     metadata.pop("resourceVersion", None)
-
     return spec
 
 
@@ -59,7 +57,9 @@ def view_namespace(namespace):
         cronjob_detail["jobs"] = jobs
         cronjobs_with_details.append(cronjob_detail)
 
-    return render_template("namespace.html", cronjobs=cronjobs_with_details, namespace=namespace)
+    return render_template(
+        "namespace.html", cronjobs=cronjobs_with_details, namespace=namespace
+    )
 
 
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])

@@ -23,7 +23,9 @@ batch = client.BatchV1Api()
 generic = client.ApiClient()
 
 
-def _filter_object_fields(response: object, fields: List[str] = ["name"]) -> List[object]:
+def _filter_object_fields(
+    response: object, fields: List[str] = ["name"]
+) -> List[object]:
     """
     Filter a given API object down to only the metadata fields listed.
 
@@ -238,7 +240,7 @@ def get_pods(namespace: str, job_name: str = None) -> List[dict]:
         return response
 
 
-def get_jobs_and_pods(namespace: str, cronjob_name:str ) -> List[dict]:
+def get_jobs_and_pods(namespace: str, cronjob_name: str) -> List[dict]:
     """Get jobs and their pods under a `pods` element for display purposes
 
     Args:
