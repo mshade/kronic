@@ -46,22 +46,20 @@ def index():
     return render_template("index.html", namespaces=namespaces)
 
 
-@app.route("/namespaces/<name>")
-def view_namespace(name):
-    cronjob_names = get_cronjobs(name)
-    cronjobs = [
-        get_cronjob(namespace=name, cronjob_name=cronjob["name"])
-        for cronjob in cronjob_names
-    ]
-    for cron in cronjobs:
-        jobs = get_jobs(namespace=name, cronjob_name=cron["metadata"]["name"])
-        cron["jobs"] = jobs
-        for job in cron["jobs"]:
-            job["pods"] = get_pods(
-                cron["metadata"]["namespace"], job["metadata"]["name"]
-            )
+@app.route("/namespaces/<namespace>")
+def view_namespace(namespace):
+    cronjobs = get_cronjobs(namespace)
+    cronjobs_with_details = []
 
-    return render_template("namespace.html", cronjobs=cronjobs, namespace=name)
+    for cronjob in cronjobs:
+        cronjob_detail = get_cronjob(namespace, cronjob["name"])
+        jobs = get_jobs(namespace=namespace, cronjob_name=cronjob["name"])
+        for job in jobs:
+            job["pods"] = get_pods(namespace, job["metadata"]["name"])
+        cronjob_detail["jobs"] = jobs
+        cronjobs_with_details.append(cronjob_detail)
+
+    return render_template("namespace.html", cronjobs=cronjobs_with_details, namespace=namespace)
 
 
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
