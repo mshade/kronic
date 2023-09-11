@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -13,12 +13,12 @@ from objects import cronjobList
 # Define a fixture to create a timestamp in the past
 @pytest.fixture
 def past_timestamp():
-    return (datetime.now() - timedelta(days=2)).isoformat()
+    return (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
 
 # Define a fixture to create a timestamp in the future
 @pytest.fixture
 def future_timestamp():
-    return (datetime.now() + timedelta(days=2)).isoformat()
+    return (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
 
 def test_get_human_readable_time_difference_past(past_timestamp):
     result = kron._get_time_since(past_timestamp)
@@ -29,7 +29,7 @@ def test_get_human_readable_time_difference_future(future_timestamp):
     assert result == "In the future"  # Check if the result is "In the future"
 
 def test_get_human_readable_time_difference_now():
-    result = kron._get_time_since(datetime.now().isoformat())
+    result = kron._get_time_since(datetime.now(timezone.utc).isoformat())
     assert result == "0s"  # Check if the result is "0s" for the current time
 
 def test_get_human_readable_time_difference_invalid_format():
