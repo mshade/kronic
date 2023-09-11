@@ -1,10 +1,11 @@
+import logging
 import os
 
 from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
-import logging
+from typing import Dict, List
 
 log = logging.getLogger("app.kron")
 
@@ -22,7 +23,7 @@ batch = client.BatchV1Api()
 generic = client.ApiClient()
 
 
-def _filter_object_fields(response, fields=["name"]):
+def _filter_object_fields(response: object, fields: List[str] = ["name"]) -> List[object]:
     """
     Filter a given API object down to only the metadata fields listed.
 
@@ -41,14 +42,14 @@ def _filter_object_fields(response, fields=["name"]):
     ]
 
 
-def _clean_api_object(api_object):
+def _clean_api_object(api_object: object) -> dict:
     """Convert API object to JSON and strip managedFields"""
     api_dict = generic.sanitize_for_serialization(api_object)
     api_dict["metadata"].pop("managedFields", None)
     return api_dict
 
 
-def _get_time_since(datestring):
+def _get_time_since(datestring: str) -> str:
     """
     Calculate the time difference between the input datestring and the current time
     and return a human-readable string.
@@ -81,7 +82,7 @@ def _get_time_since(datestring):
         return f"{seconds}s"
 
 
-def _has_label(api_object, k, v):
+def _has_label(api_object: object, k: str, v: str) -> bool:
     """
     Return True if a label is present with the specified key and value.
 
@@ -98,7 +99,7 @@ def _has_label(api_object, k, v):
     return labels.get(k) == v
 
 
-def _is_owned_by(object, owner_name):
+def _is_owned_by(object: object, owner_name: str) -> bool:
     """Return whether a job or pod contains an ownerReference to the given cronjob or job name
 
     Args:
@@ -112,7 +113,7 @@ def _is_owned_by(object, owner_name):
     return any(owner_ref["name"] == owner_name for owner_ref in owner_refernces)
 
 
-def get_cronjobs(namespace=""):
+def get_cronjobs(namespace: str = "") -> List[dict]:
     """Get names of cronjobs in a given namespace. If namespace is not provided, return CronJobs
         from all namespaces.
 
@@ -146,7 +147,7 @@ def get_cronjobs(namespace=""):
         return response
 
 
-def get_cronjob(namespace, cronjob_name):
+def get_cronjob(namespace: str, cronjob_name: str) -> dict:
     """Get the details of a given CronJob as a dict
 
     Args:
@@ -163,7 +164,7 @@ def get_cronjob(namespace, cronjob_name):
         return False
 
 
-def get_jobs(namespace, cronjob_name):
+def get_jobs(namespace: str, cronjob_name: str) -> List[dict]:
     """Return jobs belonging to a given CronJob name
 
     Args:
@@ -202,7 +203,7 @@ def get_jobs(namespace, cronjob_name):
         return response
 
 
-def get_pods(namespace, job_name=None):
+def get_pods(namespace: str, job_name: str = None) -> List[dict]:
     """Return pods related to jobs in a namespace
 
     Args:
@@ -237,7 +238,7 @@ def get_pods(namespace, job_name=None):
         return response
 
 
-def get_jobs_and_pods(namespace, cronjob_name):
+def get_jobs_and_pods(namespace: str, cronjob_name:str ) -> List[dict]:
     """Get jobs and their pods under a `pods` element for display purposes
 
     Args:
@@ -254,7 +255,7 @@ def get_jobs_and_pods(namespace, cronjob_name):
     return jobs
 
 
-def get_pod_logs(namespace, pod_name):
+def get_pod_logs(namespace: str, pod_name: str) -> str:
     """Return plain text logs for <pod_name> in <namespace>"""
     try:
         logs = v1.read_namespaced_pod_log(
@@ -267,7 +268,7 @@ def get_pod_logs(namespace, pod_name):
             return f"Kronic> Error fetching logs: {e.reason}"
 
 
-def trigger_cronjob(namespace, cronjob_name):
+def trigger_cronjob(namespace: str, cronjob_name: str) -> dict:
     try:
         # Retrieve the CronJob template
         cronjob = batch.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
@@ -303,7 +304,7 @@ def trigger_cronjob(namespace, cronjob_name):
         return response
 
 
-def toggle_cronjob_suspend(namespace, cronjob_name):
+def toggle_cronjob_suspend(namespace: str, cronjob_name: str) -> dict:
     """Toggle a CronJob's suspend flag on or off
 
     Args:
@@ -336,7 +337,7 @@ def toggle_cronjob_suspend(namespace, cronjob_name):
         return response
 
 
-def update_cronjob(namespace, spec):
+def update_cronjob(namespace: str, spec: str) -> dict:
     """Update/edit a CronJob configuration via patch
 
     Args:
@@ -367,7 +368,7 @@ def update_cronjob(namespace, spec):
         return response
 
 
-def delete_cronjob(namespace, cronjob_name):
+def delete_cronjob(namespace: str, cronjob_name: str) -> dict:
     """Delete a CronJob
 
     Args:
@@ -394,7 +395,7 @@ def delete_cronjob(namespace, cronjob_name):
         return response
 
 
-def delete_job(namespace, job_name):
+def delete_job(namespace: str, job_name: str) -> dict:
     """Delete a Job
 
     Args:
