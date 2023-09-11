@@ -22,24 +22,30 @@ batch = client.BatchV1Api()
 generic = client.ApiClient()
 
 
-def _itemFields(response, fields=["name"]):
-    """Filter the API object down to only the metadata fields listed"""
-    itemFields = []
-    for item in response.items:
-        x = {}
-        for field in fields:
-            x[field] = getattr(item.metadata, field)
-        itemFields.append(x)
+def _filter_object_fields(response, fields=["name"]):
+    """
+    Filter a given API object down to only the metadata fields listed.
+    
+    Args:
+        response (Obj): A kubernetes client API object or object list.
+        filds (List of str): The desired fields to retain from the object
+        
+    Returns:
+        dict: The object is converted to a dict and retains only the fields
+            provided.
+    
+    """
+    return [
+        {field: getattr(item.metadata, field) for field in fields}
+        for item in response.items
+    ]
 
-    return itemFields
 
-
-def _cleanObject(api_object):
+def _clean_api_object(api_object):
     """Convert API object to JSON and strip managedFields"""
-    object = generic.sanitize_for_serialization(api_object)
-    if "managedFields" in object["metadata"]:
-        object["metadata"].pop("managedFields")
-    return object
+    api_dict = generic.sanitize_for_serialization(api_object)
+    api_dict["metadata"].pop("managedFields", None)
+    return api_dict
 
 
 def _get_time_since(datestring):
@@ -75,14 +81,21 @@ def _get_time_since(datestring):
         return f"{seconds}s"
 
 
-def _hasLabel(api_object, k, v):
-    """Return True if a label is present with specified value"""
-    metadata = api_object["metadata"]
-    if "labels" in metadata:
-        if k in metadata["labels"]:
-            if metadata["labels"][k] == v:
-                return True
-    return False
+def _has_label(api_object, k, v):
+    """
+    Return True if a label is present with the specified key and value.
+
+    Args:
+        api_object (dict): The API object with metadata.
+        k (str): The label key to check.
+        v (str): The label value to check.
+
+    Returns:
+        bool: True if the label is present with the specified key and value, otherwise False.
+    """
+    metadata = api_object.get("metadata", {})
+    labels = metadata.get("labels", {})
+    return labels.get(k) == v
 
 
 def getCronJobs(namespace=""):
@@ -92,7 +105,7 @@ def getCronJobs(namespace=""):
         cronjobs = batch.list_namespaced_cron_job(namespace=namespace)
 
     fields = ["name", "namespace"]
-    sorted_cronjobs = sorted(_itemFields(cronjobs, fields), key=lambda x: x["name"])
+    sorted_cronjobs = sorted(_filter_object_fields(cronjobs, fields), key=lambda x: x["name"])
     return sorted_cronjobs
 
 
@@ -102,24 +115,24 @@ def getCronJob(namespace, cronjob_name):
     except ApiException:
         return False
 
-    return _cleanObject(cronjob)
+    return _clean_api_object(cronjob)
 
 
 def getNamespaces():
     namespaces = v1.list_namespace()
-    return _itemFields(namespaces)
+    return _filter_object_fields(namespaces)
 
 
 def getJobs(namespace, cronjob_name):
     jobs = batch.list_namespaced_job(namespace=namespace)
-    cleaned = [_cleanObject(job) for job in jobs.items]
+    cleaned = [_clean_api_object(job) for job in jobs.items]
     filtered = []
     if cronjob_name:
         for job in cleaned:
             if "ownerReferences" in job["metadata"]:
                 if job["metadata"]["ownerReferences"][0]["name"] == cronjob_name:
                     filtered.append(job)
-            elif _hasLabel(job, "kron.mshade.org/created-from", cronjob_name):
+            elif _has_label(job, "kron.mshade.org/created-from", cronjob_name):
                 filtered.append(job)
     else:
         filtered = cleaned
@@ -132,7 +145,7 @@ def getJobs(namespace, cronjob_name):
 
 def getPods(namespace, job_name=None):
     all_pods = v1.list_namespaced_pod(namespace=namespace)
-    cleaned = [_cleanObject(pod) for pod in all_pods.items]
+    cleaned = [_clean_api_object(pod) for pod in all_pods.items]
     pods = []
     if job_name:
         for pod in cleaned:
@@ -193,7 +206,7 @@ def triggerCronJob(namespace, cronjob_name):
             },
         }
         return response
-    return _cleanObject(trigger_job)
+    return _clean_api_object(trigger_job)
 
 
 def toggleCronJob(namespace, cronjob_name):
@@ -204,7 +217,7 @@ def toggleCronJob(namespace, cronjob_name):
     cronjob = batch.patch_namespaced_cron_job(
         name=cronjob_name, namespace=namespace, body=patch_body
     )
-    return _cleanObject(cronjob)
+    return _clean_api_object(cronjob)
 
 
 def updateCronJob(namespace, spec):
@@ -213,7 +226,7 @@ def updateCronJob(namespace, spec):
         cronjob = batch.patch_namespaced_cron_job(name, namespace, spec)
     else:
         cronjob = batch.create_namespaced_cron_job(namespace, spec)
-    return _cleanObject(cronjob)
+    return _clean_api_object(cronjob)
 
 
 def deleteCronJob(namespace, cronjob_name):
@@ -221,7 +234,7 @@ def deleteCronJob(namespace, cronjob_name):
         deleted = batch.delete_namespaced_cron_job(cronjob_name, namespace)
     except ApiException:
         return False
-    return _cleanObject(deleted)
+    return _clean_api_object(deleted)
 
 
 def deleteJob(namespace, job_name):
@@ -229,4 +242,4 @@ def deleteJob(namespace, job_name):
         deleted = batch.delete_namespaced_job(job_name, namespace)
     except ApiException:
         return False
-    return _cleanObject(deleted)
+    return _clean_api_object(deleted)

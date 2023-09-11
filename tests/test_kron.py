@@ -37,8 +37,8 @@ def test_get_human_readable_time_difference_invalid_format():
         kron._get_time_since("invalid_timestamp")
 
 
-def test_itemFields():
-    assert kron._itemFields(cronjobList) == [
+def test_filter_object_fields():
+    assert kron._filter_object_fields(cronjobList) == [
         {"name": "first"},
         {"name": "second"},
         {"name": "third"},
@@ -46,12 +46,14 @@ def test_itemFields():
         {"name": "fifth"},
     ]
 
-def test_cleanObject():
+def test_clean_api_object():
     for job in cronjobList.items:
-        assert job.metadata.name == kron._cleanObject(job)["metadata"]["name"]
-        assert job.metadata.namespace == kron._cleanObject(job)["metadata"]["namespace"]
+        assert job.metadata.name == kron._clean_api_object(job)["metadata"]["name"]
+        assert job.metadata.namespace == kron._clean_api_object(job)["metadata"]["namespace"]
+        assert "managedFields" not in kron._clean_api_object(job)["metadata"]
 
-def test_hasLabel():
-    cronjob = kron._cleanObject(cronjobList.items[0])
-    assert kron._hasLabel(cronjob, "app", "test") == True
+def test_has_label():
+    cronjob = kron._clean_api_object(cronjobList.items[0])
+    assert kron._has_label(cronjob, "app", "test") == True
+    assert kron._has_label(cronjob, "app", "badlabel") == False
 
