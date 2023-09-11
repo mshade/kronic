@@ -42,25 +42,37 @@ def _cleanObject(api_object):
     return object
 
 
-def _getTimeSince(datestring):
-    # pod startTime format
-    date = datetime.fromisoformat(datestring)
-    since = datetime.now(timezone.utc) - date
-    d = since.seconds // (3600 * 24)
-    h = since.seconds // 3600 % 24
-    m = since.seconds % 3600 // 60
-    s = since.seconds % 3600 % 60
+def _get_time_since(datestring):
+    """
+    Calculate the time difference between the input datestring and the current time
+    and return a human-readable string.
 
-    if d > 0:
-        return f"{d}d {h}h {m}m {s}s"
-    elif h > 0:
-        return f"{h}h {m}m {s}s"
-    elif m > 0:
-        return f"{m}m {s}s"
-    elif s > 0:
-        return f"{s}s"
+    Args:
+        datestring (str): A string representing a timestamp in ISO format.
 
-    return
+    Returns:
+        str: A human-readable time difference string.
+    """
+    current_time = datetime.now(timezone.utc)
+    input_time = datetime.fromisoformat(datestring)
+
+    time_difference = current_time - input_time
+
+    if time_difference.total_seconds() < 0:
+        return "In the future"
+
+    days = time_difference.days
+    hours, remainder = divmod(time_difference.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if days > 0:
+        return f"{days}d {hours}h {minutes}m {seconds}s"
+    elif hours > 0:
+        return f"{hours}h {minutes}m {seconds}s"
+    elif minutes > 0:
+        return f"{minutes}m {seconds}s"
+    else:
+        return f"{seconds}s"
 
 
 def _hasLabel(api_object, k, v):
@@ -113,7 +125,7 @@ def getJobs(namespace, cronjob_name):
         filtered = cleaned
 
     for job in filtered:
-        job["status"]["age"] = _getTimeSince(job["status"]["startTime"])
+        job["status"]["age"] = _get_time_since(job["status"]["startTime"])
 
     return filtered
 
