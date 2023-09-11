@@ -48,12 +48,22 @@ def test_get_human_readable_time_difference_invalid_format():
 
 
 def test_filter_object_fields(cronjob_list):
+    cron_dict_list = [
+        {"metadata": {"name": "first", "namespace": "test"}},
+        {"metadata": {"name": "second", "namespace": "test"}},
+    ]
+
     assert kron._filter_object_fields(cronjob_list) == [
         {"name": "first"},
         {"name": "second"},
         {"name": "third"},
         {"name": "fourth"},
         {"name": "fifth"},
+    ]
+    
+    assert kron._filter_object_fields(cron_dict_list) == [
+        {"name": "first"},
+        {"name": "second"}
     ]
 
 

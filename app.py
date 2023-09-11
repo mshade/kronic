@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template, redirect
-from boltons.iterutils import remap
-
+from functools import wraps
 import yaml
 
+import config
 from kron import (
     get_cronjobs,
     get_jobs,
@@ -19,6 +19,27 @@ from kron import (
 
 app = Flask(__name__, static_url_path="", static_folder="static")
 
+# A namespace filter decorator
+def namespace_filter(func):
+    @wraps(func)
+    def wrapper(namespace, *args, **kwargs):
+        if config.ALLOW_NAMESPACES:
+            if namespace in config.ALLOW_NAMESPACES.split(','):
+                return func(namespace, *args, **kwargs)
+        else:
+            return func(namespace, *args, **kwargs)
+
+        data = {
+            "error": f"Request to {namespace} denied due to KRONIC_ALLOW_NAMESPACES setting",
+            "namespace": namespace,
+            "allowed_namespaces": config.ALLOW_NAMESPACES
+        }
+        if request.headers.get("content-type", None)== "application/json":
+            return data, 403
+        else:
+            return render_template("denied.html", data=data)
+    return wrapper
+
 
 def _strip_immutable_fields(spec):
     spec.pop("status", None)
@@ -32,8 +53,8 @@ def _strip_immutable_fields(spec):
 def healthz():
     return {"status": "ok"}
 
-
 @app.route("/")
+@app.route("/namespaces/")
 def index():
     cronjobs = get_cronjobs()
     namespaces = {}
@@ -43,8 +64,8 @@ def index():
 
     return render_template("index.html", namespaces=namespaces)
 
-
 @app.route("/namespaces/<namespace>")
+@namespace_filter
 def view_namespace(namespace):
     cronjobs = get_cronjobs(namespace)
     cronjobs_with_details = []
@@ -61,8 +82,8 @@ def view_namespace(namespace):
         "namespace.html", cronjobs=cronjobs_with_details, namespace=namespace
     )
 
-
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
+@namespace_filter
 def view_cronjob(namespace, cronjob_name):
     if request.method == "POST":
         edited_cronjob = yaml.safe_load(request.form["yaml"])
@@ -81,8 +102,30 @@ def view_cronjob(namespace, cronjob_name):
         cronjob = {
             "apiVersion": "batch/v1",
             "kind": "CronJob",
-            "metadata": {"name": cronjob_name, "namespace": namespace},
-            "spec": {},
+            "metadata": {
+                "name": cronjob_name,
+                "namespace": namespace
+                },
+            "spec": {
+                "schedule": "*/10 * * * *",
+                "jobTemplate": {
+                    "spec": {
+                        "template": {
+                            "spec": {
+                                "containers": [{
+                                    "name": "example",
+                                    "image": "busybox:latest",
+                                    "imagePullPolicy": "IfNotPresent",
+                                    "command": [
+                                        "/bin/sh", "-c", "echo hello; date"
+                                    ]
+                                }],
+                            "restartPolicy": "OnFailure"
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     cronjob_yaml = yaml.dump(cronjob)
@@ -98,12 +141,14 @@ def api_index():
 
 @app.route("/api/namespaces/<namespace>/cronjobs")
 @app.route("/api/namespaces/<namespace>")
+@namespace_filter
 def api_namespace(namespace):
     cronjobs = get_cronjobs(namespace)
     return cronjobs
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>")
+@namespace_filter
 def api_get_cronjob(namespace, cronjob_name):
     cronjob = get_cronjob(namespace, cronjob_name)
     return cronjob
@@ -112,6 +157,7 @@ def api_get_cronjob(namespace, cronjob_name):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/clone", methods=["POST"]
 )
+@namespace_filter
 def api_clone_cronjob(namespace, cronjob_name):
     cronjob_spec = get_cronjob(namespace, cronjob_name)
     new_name = request.json["name"]
@@ -124,6 +170,7 @@ def api_clone_cronjob(namespace, cronjob_name):
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/create", methods=["POST"])
+@namespace_filter
 def api_create_cronjob(namespace):
     cronjob_spec = request.json["data"]
     cronjob = update_cronjob(namespace, cronjob_spec)
@@ -133,6 +180,7 @@ def api_create_cronjob(namespace):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
 )
+@namespace_filter
 def api_delete_cronjob(namespace, cronjob_name):
     deleted = delete_cronjob(namespace, cronjob_name)
     return deleted
@@ -142,6 +190,7 @@ def api_delete_cronjob(namespace, cronjob_name):
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/suspend",
     methods=["GET", "POST"],
 )
+@namespace_filter
 def api_toggle_cronjob_suspend(namespace, cronjob_name):
     if request.method == "GET":
         """Return the suspended status of the <cronjob_name>"""
@@ -156,6 +205,7 @@ def api_toggle_cronjob_suspend(namespace, cronjob_name):
 @app.route(
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/trigger", methods=["POST"]
 )
+@namespace_filter
 def api_trigger_cronjob(namespace, cronjob_name):
     """Manually trigger a job from <cronjob_name>"""
     cronjob = trigger_cronjob(namespace, cronjob_name)
@@ -167,24 +217,28 @@ def api_trigger_cronjob(namespace, cronjob_name):
 
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/getJobs")
+@namespace_filter
 def api_get_jobs(namespace, cronjob_name):
     jobs = get_jobs_and_pods(namespace, cronjob_name)
     return jobs
 
 
 @app.route("/api/namespaces/<namespace>/pods")
+@namespace_filter
 def api_get_pods(namespace):
     pods = get_pods(namespace)
     return pods
 
 
 @app.route("/api/namespaces/<namespace>/pods/<pod_name>/logs")
+@namespace_filter
 def api_get_pod_logs(namespace, pod_name):
     logs = get_pod_logs(namespace, pod_name)
     return logs
 
 
 @app.route("/api/namespaces/<namespace>/jobs/<job_name>/delete", methods=["POST"])
+@namespace_filter
 def api_delete_job(namespace, job_name):
     deleted = delete_job(namespace, job_name)
     return deleted

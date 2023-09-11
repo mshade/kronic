@@ -2,7 +2,13 @@
 
 {% block content %}
 <a href="/">«back</a>
-<h1>{% block title %}CronJobs in {{ namespace }} {% endblock %}</h1>
+<div class="grid" x-data="{ newCronJobName: null }">
+  <div><h1>{% block title %}CronJobs in {{ namespace }} {% endblock %}</h1></div>
+  <div style="text-align: right;"><div role="button"
+    @click="newCronJobName = prompt('New CronJob Name:', 'example-cronjob');
+      window.location.href = `/namespaces/{{namespace}}/cronjobs/${newCronJobName}`;"
+    >Create CronJob</div></div>
+</div>
 {% for cronjob in cronjobs %}
 <div x-cloak x-data="{jobs: [], isLoading: true, failing: false, cloneJobName: null}" x-init="async () => {
   const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs')

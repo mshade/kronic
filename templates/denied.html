@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %}Access denied to {{data.namespace}}{% endblock %}</h2>
+<p>Namespaces allowed: {{data.allowed_namespaces}}</p>
+
+{% endblock %}

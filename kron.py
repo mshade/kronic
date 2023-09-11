@@ -1,21 +1,23 @@
 import logging
-import os
 
-from kubernetes import client, config
+from kubernetes import client
+from kubernetes import config as kubeconfig
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
 from typing import List
 
+import config
+
 log = logging.getLogger("app.kron")
 
-if not os.environ.get("KRONIC_TEST", False):
+if not config.TEST:
     try:
         # Load configuration inside the Pod
-        config.load_incluster_config()
+        kubeconfig.load_incluster_config()
     except ConfigException:
         # Load configuration from KUBECONFIG
-        config.load_kube_config()
+        kubeconfig.load_kube_config()
 
 # Create the Api clients
 v1 = client.CoreV1Api()
@@ -23,11 +25,16 @@ batch = client.BatchV1Api()
 generic = client.ApiClient()
 
 
+def _filter_namespaces(item_list: List[dict]) -> List[dict]:
+    cleaned_items = [_clean_api_object(item) for item in item_list]
+    return [item for item in cleaned_items if item["metadata"]["namespace"] in config.ALLOW_NAMESPACES or not config.ALLOW_NAMESPACES]
+
+
 def _filter_object_fields(
     response: object, fields: List[str] = ["name"]
 ) -> List[object]:
     """
-    Filter a given API object down to only the metadata fields listed.
+    Filter a given list of API object down to only the metadata fields listed.
 
     Args:
         response (Obj): A kubernetes client API object or object list.
@@ -38,9 +45,21 @@ def _filter_object_fields(
             provided.
 
     """
+    # if isinstance(response, list):
+    #     return [
+    #         {field: item.get("metadata", None).get(field, None) for field in fields}
+    #         for item in response
+    #     ]
+    # else:
     return [
         {field: getattr(item.metadata, field) for field in fields}
         for item in response.items
+    ]
+
+def _filter_dict_fields(items, fields=["name"]):
+    return [
+        {field: item.get("metadata").get(field) for field in fields}
+        for item in items
     ]
 
 
@@ -126,16 +145,23 @@ def get_cronjobs(namespace: str = "") -> List[dict]:
         List of dict: A list of dicts containing the name and namespace of each cronjob.
     """
     try:
+        cronjobs = []
         if namespace == "":
-            cronjobs = batch.list_cron_job_for_all_namespaces()
+            if not config.ALLOW_NAMESPACES:
+                cronjobs = [_clean_api_object(item) for item in batch.list_cron_job_for_all_namespaces().items]
+            else:
+                cronjobs = []
+                for allowed in config.ALLOW_NAMESPACES.split(','):
+                    cronjobs.extend([_clean_api_object(item) for item in batch.list_namespaced_cron_job(namespace=allowed).items])
         else:
-            cronjobs = batch.list_namespaced_cron_job(namespace=namespace)
+            cronjobs = [_clean_api_object(item) for item in batch.list_namespaced_cron_job(namespace=namespace).items]
 
         fields = ["name", "namespace"]
         sorted_cronjobs = sorted(
-            _filter_object_fields(cronjobs, fields), key=lambda x: x["name"]
+            _filter_dict_fields(cronjobs, fields), key=lambda x: x["name"]
         )
         return sorted_cronjobs
+    
     except ApiException as e:
         log.error(e)
         response = {
@@ -184,7 +210,7 @@ def get_jobs(namespace: str, cronjob_name: str) -> List[dict]:
             job
             for job in cleaned_jobs
             if _is_owned_by(job, cronjob_name)
-            or _has_label(job, "kron.mshade.org/created-from", cronjob_name)
+            or _has_label(job, "kronic.mshade.org/created-from", cronjob_name)
         ]
 
         for job in filtered_jobs:
@@ -277,9 +303,9 @@ def trigger_cronjob(namespace: str, cronjob_name: str) -> dict:
         job_template = cronjob.spec.job_template
 
         # Create a unique name indicating a manual invocation
-        date_stamp = datetime.now().strftime("%Y%m%d%H%M%S-%f")
+        date_stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S-%f")
         job_template.metadata.name = (
-            f"{job_template.metadata.name[:16]}-manual-{date_stamp}"[:63]
+            f"{cronjob.metadata.name[:16]}-manual-{date_stamp}"[:63]
         )
 
         # Set labels to identify jobs created by kronic

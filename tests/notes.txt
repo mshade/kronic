@@ -1,0 +1,8 @@
+Failure modes to test for:
+- cronjob without job_template.metadata.name (reached via trigger button): 
+```
+kronic-kronic-1  |   File "/app/kron.py", line 308, in trigger_cronjob
+kronic-kronic-1  |     f"{job_template.metadata.name[:16]}-manual-{date_stamp}"[:63]
+kronic-kronic-1  |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+kronic-kronic-1  | TypeError: 'NoneType' object is not subscriptable
+```
