@@ -5,7 +5,7 @@ from kubernetes import client, config
 from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import List
 
 log = logging.getLogger("app.kron")
 
