@@ -95,7 +95,7 @@
                     <small x-text="'Age: ' + pod.status.age"></small>
                   </li>
                   <div x-data="fetchLogs()">
-                    <details x-on:click="getLogs('{{namespace}}', pod.metadata.name); this.onclick=null;">
+                    <details x-on:click="if (!logs) { getLogs('{{namespace}}', pod.metadata.name) }">
                       <summary class="secondary">logs</summary>
                       <template x-if="logs">
                         <code><pre x-text="logs"></pre></code>
