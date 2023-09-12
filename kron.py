@@ -25,14 +25,20 @@ batch = client.BatchV1Api()
 generic = client.ApiClient()
 
 
-def _filter_namespaces(item_list: List[dict]) -> List[dict]:
-    cleaned_items = [_clean_api_object(item) for item in item_list]
-    return [item for item in cleaned_items if item["metadata"]["namespace"] in config.ALLOW_NAMESPACES or not config.ALLOW_NAMESPACES]
+def namespace_filter(func):
+    def wrapper(namespace: str = None, *args, **kwargs):
+        if config.ALLOW_NAMESPACES and namespace:
+            if namespace in config.ALLOW_NAMESPACES.split(","):
+                return func(namespace, *args, **kwargs)
+        else:
+            return func(namespace, *args, **kwargs)
+
+        return False
+
+    return wrapper
 
 
-def _filter_object_fields(
-    response: object, fields: List[str] = ["name"]
-) -> List[object]:
+def _filter_dict_fields(items: List[dict], fields: List[str] = ["name"]) -> List[dict]:
     """
     Filter a given list of API object down to only the metadata fields listed.
 
@@ -45,21 +51,8 @@ def _filter_object_fields(
             provided.
 
     """
-    # if isinstance(response, list):
-    #     return [
-    #         {field: item.get("metadata", None).get(field, None) for field in fields}
-    #         for item in response
-    #     ]
-    # else:
     return [
-        {field: getattr(item.metadata, field) for field in fields}
-        for item in response.items
-    ]
-
-def _filter_dict_fields(items, fields=["name"]):
-    return [
-        {field: item.get("metadata").get(field) for field in fields}
-        for item in items
+        {field: item.get("metadata").get(field) for field in fields} for item in items
     ]
 
 
@@ -134,7 +127,8 @@ def _is_owned_by(object: object, owner_name: str) -> bool:
     return any(owner_ref["name"] == owner_name for owner_ref in owner_refernces)
 
 
-def get_cronjobs(namespace: str = "") -> List[dict]:
+@namespace_filter
+def get_cronjobs(namespace: str = None) -> List[dict]:
     """Get names of cronjobs in a given namespace. If namespace is not provided, return CronJobs
         from all namespaces.
 
@@ -146,22 +140,35 @@ def get_cronjobs(namespace: str = "") -> List[dict]:
     """
     try:
         cronjobs = []
-        if namespace == "":
+        if not namespace:
             if not config.ALLOW_NAMESPACES:
-                cronjobs = [_clean_api_object(item) for item in batch.list_cron_job_for_all_namespaces().items]
+                cronjobs = [
+                    _clean_api_object(item)
+                    for item in batch.list_cron_job_for_all_namespaces().items
+                ]
             else:
                 cronjobs = []
-                for allowed in config.ALLOW_NAMESPACES.split(','):
-                    cronjobs.extend([_clean_api_object(item) for item in batch.list_namespaced_cron_job(namespace=allowed).items])
+                for allowed in config.ALLOW_NAMESPACES.split(","):
+                    cronjobs.extend(
+                        [
+                            _clean_api_object(item)
+                            for item in batch.list_namespaced_cron_job(
+                                namespace=allowed
+                            ).items
+                        ]
+                    )
         else:
-            cronjobs = [_clean_api_object(item) for item in batch.list_namespaced_cron_job(namespace=namespace).items]
+            cronjobs = [
+                _clean_api_object(item)
+                for item in batch.list_namespaced_cron_job(namespace=namespace).items
+            ]
 
         fields = ["name", "namespace"]
         sorted_cronjobs = sorted(
             _filter_dict_fields(cronjobs, fields), key=lambda x: x["name"]
         )
         return sorted_cronjobs
-    
+
     except ApiException as e:
         log.error(e)
         response = {
@@ -175,6 +182,7 @@ def get_cronjobs(namespace: str = "") -> List[dict]:
         return response
 
 
+@namespace_filter
 def get_cronjob(namespace: str, cronjob_name: str) -> dict:
     """Get the details of a given CronJob as a dict
 
@@ -192,6 +200,7 @@ def get_cronjob(namespace: str, cronjob_name: str) -> dict:
         return False
 
 
+@namespace_filter
 def get_jobs(namespace: str, cronjob_name: str) -> List[dict]:
     """Return jobs belonging to a given CronJob name
 
@@ -231,6 +240,7 @@ def get_jobs(namespace: str, cronjob_name: str) -> List[dict]:
         return response
 
 
+@namespace_filter
 def get_pods(namespace: str, job_name: str = None) -> List[dict]:
     """Return pods related to jobs in a namespace
 
@@ -266,6 +276,7 @@ def get_pods(namespace: str, job_name: str = None) -> List[dict]:
         return response
 
 
+@namespace_filter
 def get_jobs_and_pods(namespace: str, cronjob_name: str) -> List[dict]:
     """Get jobs and their pods under a `pods` element for display purposes
 
@@ -283,6 +294,7 @@ def get_jobs_and_pods(namespace: str, cronjob_name: str) -> List[dict]:
     return jobs
 
 
+@namespace_filter
 def get_pod_logs(namespace: str, pod_name: str) -> str:
     """Return plain text logs for <pod_name> in <namespace>"""
     try:
@@ -296,6 +308,7 @@ def get_pod_logs(namespace: str, pod_name: str) -> str:
             return f"Kronic> Error fetching logs: {e.reason}"
 
 
+@namespace_filter
 def trigger_cronjob(namespace: str, cronjob_name: str) -> dict:
     try:
         # Retrieve the CronJob template
@@ -332,6 +345,7 @@ def trigger_cronjob(namespace: str, cronjob_name: str) -> dict:
         return response
 
 
+@namespace_filter
 def toggle_cronjob_suspend(namespace: str, cronjob_name: str) -> dict:
     """Toggle a CronJob's suspend flag on or off
 
@@ -365,6 +379,7 @@ def toggle_cronjob_suspend(namespace: str, cronjob_name: str) -> dict:
         return response
 
 
+@namespace_filter
 def update_cronjob(namespace: str, spec: str) -> dict:
     """Update/edit a CronJob configuration via patch
 
@@ -396,6 +411,7 @@ def update_cronjob(namespace: str, spec: str) -> dict:
         return response
 
 
+@namespace_filter
 def delete_cronjob(namespace: str, cronjob_name: str) -> dict:
     """Delete a CronJob
 
@@ -423,6 +439,7 @@ def delete_cronjob(namespace: str, cronjob_name: str) -> dict:
         return response
 
 
+@namespace_filter
 def delete_job(namespace: str, job_name: str) -> dict:
     """Delete a Job
 

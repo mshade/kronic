@@ -19,12 +19,13 @@ from kron import (
 
 app = Flask(__name__, static_url_path="", static_folder="static")
 
+
 # A namespace filter decorator
 def namespace_filter(func):
     @wraps(func)
     def wrapper(namespace, *args, **kwargs):
         if config.ALLOW_NAMESPACES:
-            if namespace in config.ALLOW_NAMESPACES.split(','):
+            if namespace in config.ALLOW_NAMESPACES.split(","):
                 return func(namespace, *args, **kwargs)
         else:
             return func(namespace, *args, **kwargs)
@@ -32,12 +33,13 @@ def namespace_filter(func):
         data = {
             "error": f"Request to {namespace} denied due to KRONIC_ALLOW_NAMESPACES setting",
             "namespace": namespace,
-            "allowed_namespaces": config.ALLOW_NAMESPACES
+            "allowed_namespaces": config.ALLOW_NAMESPACES,
         }
-        if request.headers.get("content-type", None)== "application/json":
+        if request.headers.get("content-type", None) == "application/json":
             return data, 403
         else:
             return render_template("denied.html", data=data)
+
     return wrapper
 
 
@@ -53,6 +55,7 @@ def _strip_immutable_fields(spec):
 def healthz():
     return {"status": "ok"}
 
+
 @app.route("/")
 @app.route("/namespaces/")
 def index():
@@ -63,6 +66,7 @@ def index():
         namespaces[cronjob["namespace"]] = namespaces.get(cronjob["namespace"], 0) + 1
 
     return render_template("index.html", namespaces=namespaces)
+
 
 @app.route("/namespaces/<namespace>")
 @namespace_filter
@@ -81,6 +85,7 @@ def view_namespace(namespace):
     return render_template(
         "namespace.html", cronjobs=cronjobs_with_details, namespace=namespace
     )
+
 
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
 @namespace_filter
@@ -102,30 +107,31 @@ def view_cronjob(namespace, cronjob_name):
         cronjob = {
             "apiVersion": "batch/v1",
             "kind": "CronJob",
-            "metadata": {
-                "name": cronjob_name,
-                "namespace": namespace
-                },
+            "metadata": {"name": cronjob_name, "namespace": namespace},
             "spec": {
                 "schedule": "*/10 * * * *",
                 "jobTemplate": {
                     "spec": {
                         "template": {
                             "spec": {
-                                "containers": [{
-                                    "name": "example",
-                                    "image": "busybox:latest",
-                                    "imagePullPolicy": "IfNotPresent",
-                                    "command": [
-                                        "/bin/sh", "-c", "echo hello; date"
-                                    ]
-                                }],
-                            "restartPolicy": "OnFailure"
+                                "containers": [
+                                    {
+                                        "name": "example",
+                                        "image": "busybox:latest",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "command": [
+                                            "/bin/sh",
+                                            "-c",
+                                            "echo hello; date",
+                                        ],
+                                    }
+                                ],
+                                "restartPolicy": "OnFailure",
                             }
                         }
                     }
-                }
-            }
+                },
+            },
         }
 
     cronjob_yaml = yaml.dump(cronjob)
