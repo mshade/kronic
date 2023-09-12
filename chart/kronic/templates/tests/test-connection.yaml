@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "kronic.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "kronic.fullname" . }}:{{ .Values.service.port }}/healthz']
   restartPolicy: Never
