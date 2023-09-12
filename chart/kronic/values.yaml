@@ -12,12 +12,14 @@ image:
 env:
   # -- Comma separated list of namespaces to allow access to, eg: "staging,qa,example"
   KRONIC_ALLOW_NAMESPACES: ""
+  # -- Limit Kronic to its own namespace. Set to "true" to enable.
+  KRONIC_NAMESPACE_ONLY: ""
 
 # Specify whether to create ClusterRole and ClusterRoleBinding
 # for kronic. If disabled, you will need to handle permissions
 # manually.
 rbac:
-  # -- Create ClusterRole and ClusterRoleBindings for default cluster-wide cronjob/job/pod permissions
+  # -- Create ClusterRole, ClusterRoleBindings, Role, RoleBindings for cronjob/job/pod permissions.
   enabled: true
 
 serviceAccount:

@@ -3,3 +3,6 @@ ingress:
   auth:
     enabled: true
     secretName: custom-basic-auth
+
+env:
+  KRONIC_NAMESPACE_ONLY: "true"
