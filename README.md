@@ -34,6 +34,12 @@ trigger them ad-hoc, or create a new one-off job based on existing CronJob defin
 Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trigger, edit, and delete CronJobs in a Kubernetes cluster.
 
 
+## Configuration
+
+Kronic can limit itself to a list of namespaces. Specify as a comma separated list in the `KRONIC_ALLOW_NAMESPACES` environment variable.
+The helm chart exposes this option.
+
+
 ## Deploying to K8S
 
 A helm chart is available at [./chart/kronic](./chart/kronic/). 
@@ -90,9 +96,11 @@ Kronic is a small Flask app built with:
 
 ## Todo
 
+- [x] CI/CD pipeline and versioning
+- [x] Helm chart
+- [x] Allow/Deny lists for namespaces
 - [ ] Built-in auth options
 - [ ] NetworkPolicy in helm chart
-- [ ] Allow/Deny lists for namespaces
 - [ ] Timeline / Cron schedule interpreter or display
 - [ ] YAML/Spec Validation on Edit page
 - [ ] Async refreshing of job/pods
@@ -100,6 +108,4 @@ Kronic is a small Flask app built with:
 - [ ] Better logging from Flask app and Kron module
 - [ ] More unit tests
 - [ ] Integration tests against ephemeral k3s cluster
-- [x] CI/CD pipeline and versioning
-- [x] Helm chart
 - [ ] Improve localdev stack with automated k3d cluster provisioning

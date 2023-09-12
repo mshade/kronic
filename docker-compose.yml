@@ -6,6 +6,8 @@ services:
     build:
       context: .
       target: dev
+    environment:
+      KRONIC_ALLOW_NAMESPACES: "test"
     volumes:
       - .:/app
       - $HOME/.kube/kronic.yaml:/root/.kube/config
