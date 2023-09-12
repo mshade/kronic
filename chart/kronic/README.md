@@ -44,6 +44,7 @@ kubectl -n kronic port-forward deployment/kronic 8000:8000
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Provide scheduling affinity selectors |
+| env.KRONIC_ALLOW_NAMESPACES | string | `""` | Comma separated list of namespaces to allow access to, eg: "staging,qa,example" |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/mshade/kronic"` |  |
 | image.tag | string | `""` |  |
@@ -59,7 +60,7 @@ kubectl -n kronic port-forward deployment/kronic 8000:8000
 | nodeSelector | object | `{}` |  |
 | podAnnotations | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
-| rbac.enabled | bool | `true` | Create ClusterRole and ClusterRoleBindings for default cronjob/job/pod permissions |
+| rbac.enabled | bool | `true` | Create ClusterRole and ClusterRoleBindings for default cluster-wide cronjob/job/pod permissions |
 | replicaCount | int | `1` | Number of replicas in deployment - min 2 for HA |
 | resources.limits.cpu | int | `1` |  |
 | resources.limits.memory | string | `"1024Mi"` |  |
