@@ -93,5 +93,5 @@ jobs:
         run: |
           ct install --charts chart/kronic \
             --helm-extra-args '--timeout 60s' \
-            --helm-extra-args '--set image.tag=${{ needs.build.outputs.releaseTag }}'
+            --helm-extra-set-args '--set=image.tag=${{ needs.build.outputs.releaseTag }}' \
             --target-branch ${{ github.event.repository.default_branch }}
