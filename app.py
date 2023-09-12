@@ -1,4 +1,7 @@
 from flask import Flask, request, render_template, redirect
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import check_password_hash
+
 from functools import wraps
 import yaml
 
@@ -18,7 +21,16 @@ from kron import (
 )
 
 app = Flask(__name__, static_url_path="", static_folder="static")
+auth = HTTPBasicAuth()
 
+@auth.verify_password
+def verify_password(username, password):
+    # No users defined, so no auth enabled
+    if not config.USERS:
+        return True
+    else:
+        if username in config.USERS and check_password_hash(config.USERS.get(username), password):
+            return username
 
 # A namespace filter decorator
 def namespace_filter(func):
@@ -59,6 +71,7 @@ def healthz():
 
 @app.route("/")
 @app.route("/namespaces/")
+@auth.login_required
 def index():
     if config.NAMESPACE_ONLY:
         return redirect(
@@ -77,6 +90,7 @@ def index():
 
 @app.route("/namespaces/<namespace>")
 @namespace_filter
+@auth.login_required
 def view_namespace(namespace):
     cronjobs = get_cronjobs(namespace)
     cronjobs_with_details = []
@@ -96,6 +110,7 @@ def view_namespace(namespace):
 
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
 @namespace_filter
+@auth.login_required
 def view_cronjob(namespace, cronjob_name):
     if request.method == "POST":
         edited_cronjob = yaml.safe_load(request.form["yaml"])
@@ -146,6 +161,7 @@ def view_cronjob(namespace, cronjob_name):
 
 
 @app.route("/api/")
+@auth.login_required
 def api_index():
     if config.NAMESPACE_ONLY:
         return redirect(
@@ -160,6 +176,7 @@ def api_index():
 @app.route("/api/namespaces/<namespace>/cronjobs")
 @app.route("/api/namespaces/<namespace>")
 @namespace_filter
+@auth.login_required
 def api_namespace(namespace):
     cronjobs = get_cronjobs(namespace)
     return cronjobs
@@ -167,6 +184,7 @@ def api_namespace(namespace):
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>")
 @namespace_filter
+@auth.login_required
 def api_get_cronjob(namespace, cronjob_name):
     cronjob = get_cronjob(namespace, cronjob_name)
     return cronjob
@@ -176,6 +194,7 @@ def api_get_cronjob(namespace, cronjob_name):
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/clone", methods=["POST"]
 )
 @namespace_filter
+@auth.login_required
 def api_clone_cronjob(namespace, cronjob_name):
     cronjob_spec = get_cronjob(namespace, cronjob_name)
     new_name = request.json["name"]
@@ -189,6 +208,7 @@ def api_clone_cronjob(namespace, cronjob_name):
 
 @app.route("/api/namespaces/<namespace>/cronjobs/create", methods=["POST"])
 @namespace_filter
+@auth.login_required
 def api_create_cronjob(namespace):
     cronjob_spec = request.json["data"]
     cronjob = update_cronjob(namespace, cronjob_spec)
@@ -199,6 +219,7 @@ def api_create_cronjob(namespace):
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/delete", methods=["POST"]
 )
 @namespace_filter
+@auth.login_required
 def api_delete_cronjob(namespace, cronjob_name):
     deleted = delete_cronjob(namespace, cronjob_name)
     return deleted
@@ -209,6 +230,7 @@ def api_delete_cronjob(namespace, cronjob_name):
     methods=["GET", "POST"],
 )
 @namespace_filter
+@auth.login_required
 def api_toggle_cronjob_suspend(namespace, cronjob_name):
     if request.method == "GET":
         """Return the suspended status of the <cronjob_name>"""
@@ -224,6 +246,7 @@ def api_toggle_cronjob_suspend(namespace, cronjob_name):
     "/api/namespaces/<namespace>/cronjobs/<cronjob_name>/trigger", methods=["POST"]
 )
 @namespace_filter
+@auth.login_required
 def api_trigger_cronjob(namespace, cronjob_name):
     """Manually trigger a job from <cronjob_name>"""
     cronjob = trigger_cronjob(namespace, cronjob_name)
@@ -236,6 +259,7 @@ def api_trigger_cronjob(namespace, cronjob_name):
 
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/getJobs")
 @namespace_filter
+@auth.login_required
 def api_get_jobs(namespace, cronjob_name):
     jobs = get_jobs_and_pods(namespace, cronjob_name)
     return jobs
@@ -243,6 +267,7 @@ def api_get_jobs(namespace, cronjob_name):
 
 @app.route("/api/namespaces/<namespace>/pods")
 @namespace_filter
+@auth.login_required
 def api_get_pods(namespace):
     pods = get_pods(namespace)
     return pods
@@ -250,6 +275,7 @@ def api_get_pods(namespace):
 
 @app.route("/api/namespaces/<namespace>/pods/<pod_name>/logs")
 @namespace_filter
+@auth.login_required
 def api_get_pod_logs(namespace, pod_name):
     logs = get_pod_logs(namespace, pod_name)
     return logs
@@ -257,6 +283,7 @@ def api_get_pod_logs(namespace, pod_name):
 
 @app.route("/api/namespaces/<namespace>/jobs/<job_name>/delete", methods=["POST"])
 @namespace_filter
+@auth.login_required
 def api_delete_job(namespace, job_name):
     deleted = delete_job(namespace, job_name)
     return deleted
