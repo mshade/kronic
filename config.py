@@ -1,4 +1,8 @@
+import logging
 import os
+import sys
+
+log = logging.getLogger("app.config")
 
 ## Configuration
 # Comma separated list of namespaces to allow access to
@@ -9,8 +13,15 @@ TEST = os.environ.get("KRONIC_TEST", False)
 
 # Limit to local namespace. Supercedes `ALLOW_NAMESPACES`
 NAMESPACE_ONLY = os.environ.get("KRONIC_NAMESPACE_ONLY", False)
-KRONIC_NAMESPACE = os.environ.get("KRONIC_NAMESPACE", None)
 
 # Set allowed namespaces to the installed namespace only
 if NAMESPACE_ONLY:
+    try:
+        KRONIC_NAMESPACE = os.environ["KRONIC_NAMESPACE"]
+    except KeyError as e:
+        log.error(
+            "ERROR: KRONIC_NAMESPACE variable not set and a NAMESPACE_ONLY mode was specified."
+        )
+        sys.exit(1)
+
     ALLOW_NAMESPACES = KRONIC_NAMESPACE
