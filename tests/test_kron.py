@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import config
 import kron
 import objects
 
@@ -78,3 +79,27 @@ def test_has_label(cronjob_list):
     cronjob = kron._clean_api_object(cronjob_list.items[0])
     assert kron._has_label(cronjob, "app", "test") == True
     assert kron._has_label(cronjob, "app", "badlabel") == False
+
+
+def test_namespace_filter_denies_access(namespace: str = "test"):
+    config.ALLOW_NAMESPACES = "qa"
+
+    @kron.namespace_filter
+    def to_be_decorated(namespace, **kwargs):
+        # Filter will override this return if behaving properly
+        return True
+
+    result = to_be_decorated(namespace)
+    assert result is False
+
+
+def test_namespace_filter_allows_access(namespace: str = "test"):
+    config.ALLOW_NAMESPACES = "qa,test"
+
+    @kron.namespace_filter
+    def to_be_decorated(namespace, **kwargs):
+        # Filter will keep return status if behaving properly
+        return True
+
+    result = to_be_decorated(namespace)
+    assert result is True
