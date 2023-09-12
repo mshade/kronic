@@ -31,7 +31,7 @@ jobs:
       - name: Run chart-testing (lint)
         run: |
           ct lint --chart-dirs chart \
-            --check-version-increment false \
+            --charts kronic \
             --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Create kind cluster
