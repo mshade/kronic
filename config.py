@@ -13,4 +13,4 @@ KRONIC_NAMESPACE = os.environ.get("KRONIC_NAMESPACE", None)
 
 # Set allowed namespaces to the installed namespace only
 if NAMESPACE_ONLY:
-    ALLOW_NAMESPACES = [KRONIC_NAMESPACE]
+    ALLOW_NAMESPACES = KRONIC_NAMESPACE
