@@ -148,7 +148,7 @@ def view_cronjob(namespace, cronjob_name):
 def api_index():
     if config.NAMESPACE_ONLY:
         return redirect(
-                f"/namespaces/{config.KRONIC_NAMESPACE}",
+                f"/api/namespaces/{config.KRONIC_NAMESPACE}",
                 code=302,
             )
     # Return all cronjobs
