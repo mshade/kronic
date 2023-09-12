@@ -31,6 +31,7 @@ def namespace_filter(func):
     Args:
         func (function): The function to wrap. Must have `namespace` as an arg to itself
     """
+
     def wrapper(namespace: str = None, *args, **kwargs):
         if config.ALLOW_NAMESPACES and namespace:
             if namespace in config.ALLOW_NAMESPACES.split(","):

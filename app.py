@@ -35,7 +35,9 @@ def namespace_filter(func):
             "namespace": namespace,
             "allowed_namespaces": config.ALLOW_NAMESPACES,
         }
-        if request.headers.get("content-type", None) == "application/json":
+        if request.headers.get(
+            "content-type", None
+        ) == "application/json" or request.base_url.startswith("/api/"):
             return data, 403
         else:
             return render_template("denied.html", data=data)
@@ -61,9 +63,9 @@ def healthz():
 def index():
     if config.NAMESPACE_ONLY:
         return redirect(
-                f"/namespaces/{config.KRONIC_NAMESPACE}",
-                code=302,
-            )
+            f"/namespaces/{config.KRONIC_NAMESPACE}",
+            code=302,
+        )
 
     cronjobs = get_cronjobs()
     namespaces = {}
@@ -148,9 +150,9 @@ def view_cronjob(namespace, cronjob_name):
 def api_index():
     if config.NAMESPACE_ONLY:
         return redirect(
-                f"/api/namespaces/{config.KRONIC_NAMESPACE}",
-                code=302,
-            )
+            f"/api/namespaces/{config.KRONIC_NAMESPACE}",
+            code=302,
+        )
     # Return all cronjobs
     jobs = get_cronjobs()
     return jobs
