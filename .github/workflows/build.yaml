@@ -59,3 +59,39 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  test-deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          check-latest: true
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.4.0
+
+      - name: Run chart-testing (lint)
+        run: |
+          ct lint --charts chart/kronic --target-branch ${{ github.event.repository.default_branch }}
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+
+      - name: Run chart-testing (install)
+        run: |
+          ct install --charts chart/kronic \
+            --helm-extra-args '--timeout 60s' \
+            --helm-extra-args '--set image.tag=${{ needs.build.outputs.releaseTag }}'
+            --target-branch ${{ github.event.repository.default_branch }}
