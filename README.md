@@ -99,6 +99,7 @@ Kronic is a small Flask app built with:
 - [x] CI/CD pipeline and versioning
 - [x] Helm chart
 - [x] Allow/Deny lists for namespaces
+- [ ] Support a namespaced install (no cluster-wide view)
 - [ ] Built-in auth options
 - [ ] NetworkPolicy in helm chart
 - [ ] Timeline / Cron schedule interpreter or display
@@ -106,6 +107,6 @@ Kronic is a small Flask app built with:
 - [ ] Async refreshing of job/pods
 - [ ] Error handling for js apiClient
 - [ ] Better logging from Flask app and Kron module
-- [ ] More unit tests
+- [ ] Improve test coverage
 - [ ] Integration tests against ephemeral k3s cluster
 - [ ] Improve localdev stack with automated k3d cluster provisioning
