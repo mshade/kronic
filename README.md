@@ -1,6 +1,8 @@
-# Kronic
+<p align="center">
+    <img src="/static/android-chrome-192x192.png" alt="icon">
+</p>
 
-![Kronic Logo](/static/android-chrome-192x192.png)
+# Kronic
 
 ![Build / Test](https://github.com/mshade/kronic/actions/workflows/build.yaml/badge.svg)
 
