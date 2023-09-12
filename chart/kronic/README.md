@@ -4,7 +4,7 @@ Kronic - The simple Kubernetes CronJob Admin UI
 
 **Homepage:** <https://github.com/mshade/kronic>
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.0](https://img.shields.io/badge/AppVersion-v0.1.0-informational?style=flat-square)
+![Version: 0.1.4](https://img.shields.io/badge/Version-0.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.1](https://img.shields.io/badge/AppVersion-v0.1.1-informational?style=flat-square)
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
 Avoid exposing Kronic to untrusted parties or networks.
@@ -45,6 +45,7 @@ kubectl -n kronic port-forward deployment/kronic 8000:8000
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Provide scheduling affinity selectors |
 | env.KRONIC_ALLOW_NAMESPACES | string | `""` | Comma separated list of namespaces to allow access to, eg: "staging,qa,example" |
+| env.KRONIC_NAMESPACE_ONLY | string | `""` | Limit Kronic to its own namespace. Set to "true" to enable. |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/mshade/kronic"` |  |
 | image.tag | string | `""` |  |
@@ -60,7 +61,7 @@ kubectl -n kronic port-forward deployment/kronic 8000:8000
 | nodeSelector | object | `{}` |  |
 | podAnnotations | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
-| rbac.enabled | bool | `true` | Create ClusterRole and ClusterRoleBindings for default cluster-wide cronjob/job/pod permissions |
+| rbac.enabled | bool | `true` | Create ClusterRole, ClusterRoleBindings, Role, RoleBindings for cronjob/job/pod permissions. |
 | replicaCount | int | `1` | Number of replicas in deployment - min 2 for HA |
 | resources.limits.cpu | int | `1` |  |
 | resources.limits.memory | string | `"1024Mi"` |  |
