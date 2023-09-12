@@ -6,7 +6,11 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+
 import config
+
+config.TEST = True
+
 import kron
 import objects
 

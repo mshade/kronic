@@ -28,7 +28,7 @@ jobs:
         run: docker build --target dev -t ${IMAGE_NAME}:test .
 
       - name: Run Unit Tests
-        run: docker run -i -e KRONIC_TEST=true --rm -v $PWD:/app ${IMAGE_NAME}:test pytest
+        run: docker run -i --rm -v $PWD:/app ${IMAGE_NAME}:test pytest
 
       - name: Log into GHCR
         uses: docker/login-action@v3
