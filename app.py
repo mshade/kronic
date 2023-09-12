@@ -59,6 +59,12 @@ def healthz():
 @app.route("/")
 @app.route("/namespaces/")
 def index():
+    if config.NAMESPACE_ONLY:
+        return redirect(
+                f"/namespaces/{config.KRONIC_NAMESPACE}",
+                code=302,
+            )
+
     cronjobs = get_cronjobs()
     namespaces = {}
     # Count cronjobs per namespace
@@ -140,6 +146,11 @@ def view_cronjob(namespace, cronjob_name):
 
 @app.route("/api/")
 def api_index():
+    if config.NAMESPACE_ONLY:
+        return redirect(
+                f"/namespaces/{config.KRONIC_NAMESPACE}",
+                code=302,
+            )
     # Return all cronjobs
     jobs = get_cronjobs()
     return jobs
