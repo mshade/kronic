@@ -33,7 +33,6 @@ def namespace_filter(func):
         data = {
             "error": f"Request to {namespace} denied due to KRONIC_ALLOW_NAMESPACES setting",
             "namespace": namespace,
-            "allowed_namespaces": config.ALLOW_NAMESPACES,
         }
         if request.headers.get(
             "content-type", None
