@@ -38,8 +38,14 @@ Kronic aims to be a simple admin UI / dashboard / manager to view, suspend, trig
 
 ## Configuration
 
-Kronic can limit itself to a list of namespaces. Specify as a comma separated list in the `KRONIC_ALLOW_NAMESPACES` environment variable.
+Kronic can be limited to a list of namespaces. Specify as a comma separated list in the `KRONIC_ALLOW_NAMESPACES` environment variable.
 The helm chart exposes this option.
+
+Kronic also supports a namespaced installation. The `KRONIC_NAMESPACE_ONLY`
+environment variable will limit Kronic to interacting only with CronJobs, Jobs
+and Pods in its own namespace. Enabling this setting in the helm chart values
+(`env.KRONIC_NAMESPACE_ONLY="true"`) will prevent creation of ClusterRole and
+ClusterRolebinding, creating only a namespaced Role and RoleBinding.
 
 
 ## Deploying to K8S
@@ -101,7 +107,7 @@ Kronic is a small Flask app built with:
 - [x] CI/CD pipeline and versioning
 - [x] Helm chart
 - [x] Allow/Deny lists for namespaces
-- [ ] Support a namespaced install (no cluster-wide view)
+- [x] Support a namespaced install (no cluster-wide view)
 - [ ] Built-in auth options
 - [ ] NetworkPolicy in helm chart
 - [ ] Timeline / Cron schedule interpreter or display
