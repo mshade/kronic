@@ -23,14 +23,18 @@ from kron import (
 app = Flask(__name__, static_url_path="", static_folder="static")
 auth = HTTPBasicAuth()
 
+
 @auth.verify_password
 def verify_password(username, password):
     # No users defined, so no auth enabled
     if not config.USERS:
         return True
     else:
-        if username in config.USERS and check_password_hash(config.USERS.get(username), password):
+        if username in config.USERS and check_password_hash(
+            config.USERS.get(username), password
+        ):
             return username
+
 
 # A namespace filter decorator
 def namespace_filter(func):

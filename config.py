@@ -8,8 +8,9 @@ from werkzeug.security import generate_password_hash
 log = logging.getLogger("app.config")
 
 ## Configuration Setings
-# Initial Admin Password
+# Admin Password. Auth disabled if unset
 ADMIN_PASSWORD = os.environ.get("KRONIC_ADMIN_PASSWORD", None)
+ADMIN_USERNAME = os.environ.get("KRONIC_ADMIN_USERNAME", "kronic")
 
 # Comma separated list of namespaces to allow access to
 ALLOW_NAMESPACES = os.environ.get("KRONIC_ALLOW_NAMESPACES", None)
@@ -21,13 +22,10 @@ NAMESPACE_ONLY = os.environ.get("KRONIC_NAMESPACE_ONLY", False)
 TEST = os.environ.get("KRONIC_TEST", False)
 
 
-
 ## Config Logic
 USERS = {}
 if ADMIN_PASSWORD:
-    USERS = {
-        "kronic": generate_password_hash(ADMIN_PASSWORD)
-    }
+    USERS = {ADMIN_USERNAME: generate_password_hash(ADMIN_PASSWORD)}
 
 # Set allowed namespaces to the installed namespace only
 if NAMESPACE_ONLY:
