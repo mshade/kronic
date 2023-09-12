@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="/static/android-chrome-192x192.png" alt="icon">
+    <img src="./static/android-chrome-192x192.png" alt="icon">
 </p>
 
 # Kronic
