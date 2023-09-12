@@ -2,6 +2,8 @@ name: Chart Testing and Release
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'chart/**'
       - '.github/workflows/chart-testing.yaml'
