@@ -66,8 +66,7 @@ jobs:
           version: 'v3.12.3'
       
       - name: Generate Chart Readme
-        run: |
-          docker run --rm -v "$(pwd)/chart:/helm-docs" jnorwood/helm-docs@sha256:e438eb9f879e4bb8389ce4acd0f7e9193e3d62e877a1a3cd5abd0393dbe55fe5
+        run: ./.github/gen-chart-readme.sh
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
