@@ -36,6 +36,15 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            {{- if .Values.auth.enabled }}
+            - name: KRONIC_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecretName | default (include "kronic.fullname" .) }}
+                  key: password
+            - name: KRONIC_ADMIN_USERNAME
+              value: {{ .Values.auth.adminUsername | quote }}
+            {{- end }}
             {{- range $name, $item := .Values.env }}
             - name: {{ $name }}
               value: {{ $item | quote }}

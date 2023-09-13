@@ -60,3 +60,21 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "kronic.adminPassword" -}}
+  {{- if empty .Values.auth.adminPassword }}
+{{/*
+    User can provide pre-existing secret 
+*/}}
+    {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace .Values.auth.existingSecretName ) | default dict }}
+    {{- $secretData := (get $secretObj "data") | default dict }}
+    {{- $adminPass := (get $secretData .Values.auth.existingSecretName ) | default (randAlphaNum 16) }}
+    {{- if empty $adminPass }}
+      {{- $adminPass := "dry-run" }}
+    {{- end }}
+    {{- printf "%s" $adminPass }}
+  {{- else }}
+    {{- $adminPass := .Values.auth.adminPassword }}
+    {{- printf "%s" $adminPass }}
+  {{- end}}
+{{- end }}

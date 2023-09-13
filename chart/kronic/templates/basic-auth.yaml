@@ -1,4 +1,4 @@
-{{- if and (and .Values.ingress.enabled .Values.ingress.auth.enabled) (not .Values.ingress.auth.secretName) }}
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecretName) }}
 apiVersion: v1
 kind: Secret
 type: Opaque
@@ -7,5 +7,5 @@ metadata:
   labels:
     {{- include "kronic.labels" . | nindent 4 }}
 data:
-  auth: {{ htpasswd .Values.ingress.auth.username .Values.ingress.auth.password | b64enc | quote }}
+  password: {{ include "kronic.adminPassword" . | b64enc | quote }}
 {{- end }}

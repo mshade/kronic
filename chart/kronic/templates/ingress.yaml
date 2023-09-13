@@ -18,15 +18,10 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "kronic.labels" . | nindent 4 }}
-  {{- if or .Values.ingress.annotations .Values.ingress.auth.enabled }}
+  {{- if .Values.ingress.annotations }}
   annotations:
   {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- if .Values.ingress.auth.enabled }}
-    nginx.ingress.kubernetes.io/auth-type: basic
-    nginx.ingress.kubernetes.io/auth-secret: {{ .Values.ingress.auth.secretName | default (include "kronic.fullname" .) }}
-    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Kronic'
   {{- end }}
   {{- end }}
 spec:

@@ -8,6 +8,7 @@ services:
       target: dev
     environment:
       KRONIC_ALLOW_NAMESPACES: "test"
+      KRONIC_ADMIN_PASSWORD: "test2"
     volumes:
       - .:/app
       - $HOME/.kube/kronic.yaml:/root/.kube/config

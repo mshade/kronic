@@ -1,7 +1,5 @@
 ingress:
   enabled: true
-  auth:
-    enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -15,3 +13,7 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+auth:
+  enabled: true
+  adminPassword: "testing"

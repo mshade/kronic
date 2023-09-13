@@ -1,15 +1,16 @@
 Thanks for using Kronic!
-1. Get the application URL by running these commands:
+
+1. Access the application:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  Visit http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "kronic.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
+  Visit http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "kronic.fullname" . }}'
@@ -17,7 +18,14 @@ Thanks for using Kronic!
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
   kubectl --namespace {{ .Release.Namespace }} port-forward deployment/{{ include "kronic.fullname" . }} 8000:8000
-    echo "Visit http://127.0.0.1:8000 to use Kronic"
+    Visit http://127.0.0.1:8000
+{{- end }}
+{{- if .Values.auth.enabled }}
+
+2. Retrieve your admin password with:
+  kubectl --namespace {{ .Release.Namespace }} get secret {{ .Values.auth.existingSecretName | default (include "kronic.fullname" .) }} -ojsonpath="{.data.password}" | base64 -d
+
+Login with the username '{{ .Values.auth.adminUsername }}' and the password obtained from the command above.
 {{- end }}
 
 Submit issues or feedback at: https://github.com/mshade/kronic/issues

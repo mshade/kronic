@@ -9,6 +9,17 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+
+auth:
+  # -- Enable backend basic auth
+  enabled: true
+  # -- Specify a password via chart value. Otherwise, randomly generated on first deploy.
+  adminPassword: ""
+  # -- Set the username for auth
+  adminUsername: "kronic"
+  # -- Provide the name of a pre-existing secret containing a data.password: xxx
+  existingSecretName: ""
+
 env:
   # -- Comma separated list of namespaces to allow access to, eg: "staging,qa,example"
   KRONIC_ALLOW_NAMESPACES: ""
@@ -49,13 +60,6 @@ service:
 ingress:
   # -- Expose Kronic via Ingress
   enabled: false
-  auth:
-    # -- Enable basic auth for ingress-nginx. For other auth types or ingress controllers, annotate manually as needed
-    enabled: true
-    # -- Use a pre-existing secret for basic auth to avoid setting password in helm values
-    secretName: ""
-    username: kronic
-    password: "Sup3rS3cr3t"
   # -- The ingressClassName to use for Kronic. Avoid exposing publicly!
   className: ""
   # -- Additional annotations for ingress. Use to configure more advanced auth or controllers other than ingress-nginx

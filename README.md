@@ -11,7 +11,6 @@ The simple Kubernetes CronJob admin UI.
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
 Avoid exposing Kronic to untrusted parties or networks.
-In a multi-tenant cluster, ensure a sensible network policy is in place to prevent access to the service from other namespaces.
 
 
 ## Screenshots
@@ -48,6 +47,23 @@ and Pods in its own namespace. Enabling this setting in the helm chart values
 (`env.KRONIC_NAMESPACE_ONLY="true"`) will prevent creation of ClusterRole and
 ClusterRolebinding, creating only a namespaced Role and RoleBinding.
 
+### Authentication
+
+Kronic supports HTTP Basic authentication to the backend. It is enabled by default when installed via the helm chart. If no password is specified, the default username is `kronic` and the password is generated randomly.
+A username and password can be set via helm values under `auth.adminUsername` and `auth.adminPassword`, or you may create a Kubernetes secret for the deployment to reference.
+
+To retrieve the randomly generated admin password:
+```
+kubectl --namespace <namespace> get secret <release-name> -ojsonpath="{.data.password}" | base64 -d
+```
+
+To create an admin password secret for use with Kronic:
+```
+kubectl --namespace <namespace> create secret generic custom-password --from-literal=password=<password>
+
+## Tell the helm chart to use this secret:
+helm --namespace <namespace> upgrade kronic kronic/kronic --set auth.existingSecretName=custom-password
+```
 
 ## Deploying to K8S
 
@@ -56,21 +72,21 @@ By default the Kronic helm chart will provide only a `ClusterIP` service. See th
 most notably the `ingress` section. 
 
 > **Warning**
-> Avoid exposing Kronic publicly! The ingress configuration allows for basic authentication, but
-> provides only minimal protection. Ensure you change `ingress.auth.password` from the default if enabled.
-> Best practice would be to use a privately routed ingress class or other network-level protections.
-> You may also provide your own basic auth secret using `ingress.auth.secretName`. See [Ingress docs](https://kubernetes.github.io/ingress-nginx/examples/auth/basic/) on creation.
-
+> Avoid exposing Kronic publicly! The default configuration allows for basic authentication, but
+> provides only minimal protection. 
 
 To install Kronic as `kronic` in its own namespace:
 
 ```
 helm repo add kronic https://mshade.github.io/kronic/
 helm repo update
-# Optionally fetch and customize values file
+
+# Optionally fetch, then customize values file
 helm show values kronic/kronic > myvalues.yaml
 
 helm install -n kronic --create-namespace kronic kronic/kronic
+
+# See the NOTES output for accessing Kronic and retrieving the initial admin password
 ```
 
 If no ingress is configured (see warning above!), expose Kronic via `kubectl port-forward` and access `localhost:8000` in your browser:
@@ -109,7 +125,7 @@ Kronic is a small Flask app built with:
 - [x] Helm chart
 - [x] Allow/Deny lists for namespaces
 - [x] Support a namespaced install (no cluster-wide view)
-- [ ] Built-in auth options
+- [x] Built-in auth option
 - [ ] NetworkPolicy in helm chart
 - [ ] Timeline / Cron schedule interpreter or display
 - [ ] YAML/Spec Validation on Edit page
