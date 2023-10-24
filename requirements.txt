@@ -25,4 +25,4 @@ rsa==4.9
 six==1.16.0
 urllib3==1.26.16
 websocket-client==1.6.3
-Werkzeug==2.3.7
+Werkzeug==3.0.1
