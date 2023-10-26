@@ -1,4 +1,4 @@
-blinker==1.6.2
+blinker==1.6.3
 boltons==23.0.0
 cachetools==5.3.2
 certifi==2023.7.22
