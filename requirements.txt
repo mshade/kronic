@@ -8,7 +8,7 @@ Flask==3.0.0
 Flask-HTTPAuth==4.8.0
 google-auth==2.23.3
 gunicorn==21.2.0
-idna==3.4
+idna==3.6
 itsdangerous==2.1.2
 Jinja2==3.1.2
 kubernetes==28.1.0
