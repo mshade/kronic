@@ -10,7 +10,7 @@
 The simple Kubernetes CronJob admin UI.
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
-Avoid exposing Kronic to untrusted parties or networks.
+Avoid exposing Kronic to untrusted parties or networks or using Kronic near anything even vaguely important.
 
 
 ## Screenshots
