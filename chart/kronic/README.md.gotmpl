@@ -6,7 +6,7 @@
 {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
 
 Kronic is in early alpha. It may eat your cronjobs, pods, or even your job.
-Avoid exposing Kronic to untrusted parties or networks.
+Avoid exposing Kronic to untrusted parties or networks or using Kronic near anything even vaguely important.
 
 By default the Kronic helm chart will provide only a `ClusterIP` service. See the [values.yaml](./chart/kronic/values.yaml) for settings,
 most notably the `ingress` section.
@@ -22,6 +22,7 @@ environment variable will limit Kronic to interacting only with CronJobs, Jobs
 and Pods in its own namespace. Enabling this setting in the helm chart values
 (`env.KRONIC_NAMESPACE_ONLY="true"`) will prevent the creation of ClusterRole and
 ClusterRolebinding, using only a namespaced Role and RoleBinding.
+
 
 ### Authentication
 
@@ -40,6 +41,7 @@ kubectl --namespace <namespace> create secret generic custom-password --from-lit
 ## Tell the helm chart to use this secret:
 helm --namespace <namespace> upgrade kronic kronic/kronic --set auth.existingSecretName=custom-password
 ```
+
 
 ## Installation
 
