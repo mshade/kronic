@@ -126,6 +126,7 @@ Kronic is a small Flask app built with:
 - [x] Allow/Deny lists for namespaces
 - [x] Support a namespaced install (no cluster-wide view)
 - [x] Built-in auth option
+- [ ] Display elements and handling for `spec.timezone`
 - [ ] NetworkPolicy in helm chart
 - [ ] Timeline / Cron schedule interpreter or display
 - [ ] YAML/Spec Validation on Edit page
