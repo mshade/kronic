@@ -4,6 +4,23 @@ entries:
   - annotations:
       artifacthub.io/category: monitoring-logging
     apiVersion: v2
+    appVersion: v0.1.3
+    created: "2024-02-08T02:53:16.20936575Z"
+    description: Kronic - The simple Kubernetes CronJob Admin UI
+    digest: ed1db69b2ebe3d0d6cfd327e84c5232c1e1ee1a85e501f599acadba0522d815f
+    home: https://github.com/mshade/kronic
+    maintainers:
+    - email: mshade@mshade.org
+      name: mshade
+      url: https://github.com/mshade
+    name: kronic
+    type: application
+    urls:
+    - https://github.com/mshade/kronic/releases/download/kronic-chart-0.1.6/kronic-0.1.6.tgz
+    version: 0.1.6
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+    apiVersion: v2
     appVersion: v0.1.1
     created: "2023-09-12T18:29:23.251888909Z"
     description: Kronic - The simple Kubernetes CronJob Admin UI
@@ -86,4 +103,4 @@ entries:
     urls:
     - https://github.com/mshade/kronic/releases/download/kronic-chart-0.1.3-alpha1/kronic-0.1.3-alpha1.tgz
     version: 0.1.3-alpha1
-generated: "2023-09-12T18:29:23.251911509Z"
+generated: "2024-02-08T02:53:16.209414501Z"
