@@ -1,6 +1,8 @@
 FROM python:3.12-alpine as deps
 ENV PYTHONUNBUFFERED=1
 
+RUN apk --no-cache upgrade
+
 COPY requirements.txt /app/
 
 WORKDIR /app
