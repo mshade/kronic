@@ -67,24 +67,26 @@
         </th>
       </tr>
     </table>
+    <p>
+      Schedule: <code>{{ cronjob.spec.schedule }}</code><br />
+      Last Scheduled: <code>{{ cronjob.status.lastScheduleTime }}</code><br />
+      {% if cronjob.status.lastSuccessfulTime %}
+        Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code><br /></p>
+      {% endif %}
+    </p>
     <details id="{{cronjob.metadata.name}}-detail">
       <summary>details</summary>
       <p>image: <code>{{ cronjob.spec.jobTemplate.spec.template.spec.containers[0].image }}</code><br />
-        {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
+      {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].command %}
         command: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].command | join(' ') }}</code><br />
-        {% endif %}
-        {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].args %}
+      {% endif %}
+      {% if cronjob.spec.jobTemplate.spec.template.spec.containers[0].args %}
         args: <code>{{cronjob.spec.jobTemplate.spec.template.spec.containers[0].args | join(' ') }}</code><br />
-        {% endif %}
-        schedule: <code>{{ cronjob.spec.schedule }}</code><br />
-        Last Scheduled: <code>{{ cronjob.status.lastScheduleTime }}</code><br />
-        {% if cronjob.status.lastSuccessfulTime %}
-        Last Successful Run: <code>{{ cronjob.status.lastSuccessfulTime }}</code><br /></p>
       {% endif %}
       <p>Jobs and Pods</p>
       <p>
       <ul>
-        <template x-for="job in jobs">
+        <template x-for="job in jobs.reverse()">
           <div>
             <li><code x-text="job.metadata.name"></code>
               <small x-text="'Age: ' + job.status.age"></small>
@@ -94,7 +96,7 @@
                 [delete]</a>
             </li>
             <ul>
-              <template x-for="pod in job.pods">
+              <template x-for="pod in job.pods.reverse()">
                 <div>
                   <li>
                     <code x-text="pod.metadata.name"></code>
