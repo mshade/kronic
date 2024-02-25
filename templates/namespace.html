@@ -100,7 +100,7 @@
                     <code x-text="pod.metadata.name"></code>
                     <small x-text="'Age: ' + pod.status.age"></small>
                   </li>
-                  <div x-data="fetchLogs()">
+                  <div style="overflow:auto;" x-data="fetchLogs()">
                     <details x-on:click="if (!logs) { getLogs('{{namespace}}', pod.metadata.name) }">
                       <summary class="secondary">logs</summary>
                       <template x-if="logs">
