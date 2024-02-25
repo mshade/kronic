@@ -88,3 +88,28 @@ spec:
             resources: {}
           restartPolicy: OnFailure
   schedule: 0/5 * * * *
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: example-longlines
+  namespace: test
+spec:
+  jobTemplate:
+    metadata:
+      name: example
+    spec:
+      completions: 1
+      template:
+        spec:
+          containers:
+          - command:
+            - ash 
+            - -c
+            - |
+              while true; do seq -s '' 1 999; sleep 1; done
+            image: busybox
+            name: example
+            resources: {}
+          restartPolicy: OnFailure
+  schedule: 0/5 * * * *
