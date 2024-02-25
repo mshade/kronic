@@ -10,7 +10,7 @@
     >Create CronJob</div></div>
 </div>
 {% for cronjob in cronjobs %}
-<div x-cloak x-data="{jobs: [], isLoading: true, failing: false, cloneJobName: null}" x-init="async () => {
+<div x-cloak x-data="{jobs: [], isLoading: true, failing: false, cloneJobName: null, wrapLogs: false}" x-init="async () => {
   const response = apiClient('{{namespace}}', 'cronjobs', '{{cronjob.metadata.name}}', 'getJobs')
     .then( jobsArray => {
       jobs = jobsArray;
@@ -104,9 +104,15 @@
                   </li>
                   <div style="overflow:auto;" x-data="fetchLogs()">
                     <details x-on:click="if (!logs) { getLogs('{{namespace}}', pod.metadata.name) }">
-                      <summary class="secondary">logs</summary>
+                      <summary class="secondary" role="button">Logs</summary>
+                      <button class="outline" @click="wrapLogs = ! wrapLogs">Wrap Text</button>
                       <template x-if="logs">
-                        <code><pre x-text="logs"></pre></code>
+                        <code>
+                          <pre
+                            x-bind:style="wrapLogs ? 'overflow-wrap: anywhere; white-space: pre-wrap;' : 'white-space: pre;'"
+                            x-text="logs">
+                          </pre>
+                        </code>
                       </template>
                     </details>
                   </div>
