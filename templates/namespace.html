@@ -109,7 +109,7 @@
                       <template x-if="logs">
                         <code>
                           <pre
-                            x-bind:style="wrapLogs ? 'white-space: pre-wrap; overflow-x: hidden;' : 'white-space: pre; overflow-x: auto;'"
+                            x-bind:style="wrapLogs ? 'overflow-wrap: anywhere; white-space: pre-wrap;' : 'white-space: pre;'"
                             x-text="logs">
                           </pre>
                         </code>
