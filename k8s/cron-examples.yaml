@@ -107,7 +107,7 @@ spec:
             - ash 
             - -c
             - |
-              while true; do seq -s '' 1 999; sleep 1; done
+              for x in $(seq 1 100); do seq -s '' 1 999; done
             image: busybox
             name: example
             resources: {}
