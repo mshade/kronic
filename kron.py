@@ -119,7 +119,7 @@ def _has_label(api_object: object, k: str, v: str) -> bool:
     return labels.get(k) == v
 
 
-def _is_owned_by(object: object, owner_name: str) -> bool:
+def pod_is_owned_by(api_dict: dict, owner_name: str) -> bool:
     """Return whether a job or pod contains an ownerReference to the given cronjob or job name
 
     Args:
@@ -129,8 +129,8 @@ def _is_owned_by(object: object, owner_name: str) -> bool:
     Returns:
         bool: True if an ownerReference contains the given owner_name
     """
-    owner_refernces = object["metadata"].get("ownerReferences", [])
-    return any(owner_ref["name"] == owner_name for owner_ref in owner_refernces)
+    owner_references = api_dict["metadata"].get("ownerReferences", [])
+    return any(owner_ref["name"] == owner_name for owner_ref in owner_references)
 
 
 @namespace_filter
@@ -224,7 +224,7 @@ def get_jobs(namespace: str, cronjob_name: str) -> List[dict]:
         filtered_jobs = [
             job
             for job in cleaned_jobs
-            if _is_owned_by(job, cronjob_name)
+            if pod_is_owned_by(job, cronjob_name)
             or _has_label(job, "kronic.mshade.org/created-from", cronjob_name)
         ]
 
@@ -261,7 +261,7 @@ def get_pods(namespace: str, job_name: str = None) -> List[dict]:
         all_pods = v1.list_namespaced_pod(namespace=namespace)
         cleaned_pods = [_clean_api_object(pod) for pod in all_pods.items]
         filtered_pods = [
-            pod for pod in cleaned_pods if _is_owned_by(pod, job_name) or (not job_name)
+            pod for pod in cleaned_pods if pod_is_owned_by(pod, job_name) or (not job_name)
         ]
 
         for pod in filtered_pods:
@@ -294,8 +294,9 @@ def get_jobs_and_pods(namespace: str, cronjob_name: str) -> List[dict]:
         List of dicts: A list of job dicts, each with a jobs element containing a list of pods the job created
     """
     jobs = get_jobs(namespace, cronjob_name)
+    all_pods = get_pods(namespace)
     for job in jobs:
-        job["pods"] = get_pods(namespace, job["metadata"]["name"])
+        job["pods"] = [pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])]
 
     return jobs
 

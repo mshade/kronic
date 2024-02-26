@@ -13,6 +13,7 @@ from kron import (
     get_cronjob,
     get_pods,
     get_pod_logs,
+    pod_is_owned_by,
     toggle_cronjob_suspend,
     trigger_cronjob,
     update_cronjob,
@@ -98,12 +99,13 @@ def index():
 def view_namespace(namespace):
     cronjobs = get_cronjobs(namespace)
     cronjobs_with_details = []
+    all_pods = get_pods(namespace=namespace)
 
     for cronjob in cronjobs:
         cronjob_detail = get_cronjob(namespace, cronjob["name"])
         jobs = get_jobs(namespace=namespace, cronjob_name=cronjob["name"])
         for job in jobs:
-            job["pods"] = get_pods(namespace, job["metadata"]["name"])
+            job["pods"] = [pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])]
         cronjob_detail["jobs"] = jobs
         cronjobs_with_details.append(cronjob_detail)
 
