@@ -7,8 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.4] - 2024-03-04
 
-### Added
+## Added
 
+* Contain logs in display by @mshade in https://github.com/mshade/kronic/pull/64
+* include schedule in main display, show most recent jobs/pods first by @mshade in https://github.com/mshade/kronic/pull/63
+* Handle wrapping lines without breaks by @mshade in https://github.com/mshade/kronic/pull/65
+* :rocket: refactor pod filtering by job/cronjob to reduce number of ap… by @mshade in https://github.com/mshade/kronic/pull/67
+
+
+## Updated
+
+* update base image packages by @mshade in https://github.com/mshade/kronic/pull/61
+* Update dependency pytest to v8.0.1 by @renovate in https://github.com/mshade/kronic/pull/59
+* Update dependency google-auth to v2.28.1 by @renovate in https://github.com/mshade/kronic/pull/58
+* Update helm/kind-action action to v1.9.0 by @renovate in https://github.com/mshade/kronic/pull/55
+* Update dependency black to v24.2.0 by @renovate in https://github.com/mshade/kronic/pull/56
+
+* Update dependency pytest to v8.0.2 by @renovate in https://github.com/mshade/kronic/pull/62
+
+
+**Full Changelog**: https://github.com/mshade/kronic/compare/v0.1.3...v0.1.4
 
 
 ## [0.1.3] - 2024-02-07
