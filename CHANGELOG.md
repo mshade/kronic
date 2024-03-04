@@ -22,9 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Update dependency google-auth to v2.28.1 by @renovate in https://github.com/mshade/kronic/pull/58
 * Update helm/kind-action action to v1.9.0 by @renovate in https://github.com/mshade/kronic/pull/55
 * Update dependency black to v24.2.0 by @renovate in https://github.com/mshade/kronic/pull/56
-
 * Update dependency pytest to v8.0.2 by @renovate in https://github.com/mshade/kronic/pull/62
-
+* Update dependency cachetools to v5.3.3 by @renovate in in https://github.com/mshade/kronic/pull/68
+* Update azure/setup-helm action to v4 by @renovate in in https://github.com/mshade/kronic/pull/69
+* Update dependency python-dateutil to v2.9.0.post0 by @renovate in https://github.com/mshade/kronic/pull/70
 
 **Full Changelog**: https://github.com/mshade/kronic/compare/v0.1.3...v0.1.4
 
