@@ -2,7 +2,7 @@ apiVersion: v2
 name: kronic
 description: Kronic - The simple Kubernetes CronJob Admin UI
 type: application
-version: 0.1.6
+version: 0.1.7
 appVersion: "v0.1.4"
 home: https://github.com/mshade/kronic
 maintainers:
