@@ -6,7 +6,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 Flask==3.0.2
 Flask-HTTPAuth==4.8.0
-google-auth==2.28.2
+google-auth==2.29.0
 gunicorn==22.0.0
 idna==3.6
 itsdangerous==2.1.2
