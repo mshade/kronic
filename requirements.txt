@@ -1,6 +1,6 @@
 blinker==1.8.2
 boltons==24.0.0
-cachetools==5.3.3
+cachetools==5.5.2
 certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
