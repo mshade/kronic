@@ -4,7 +4,7 @@ cachetools==5.5.2
 certifi==2024.12.14
 charset-normalizer==3.4.3
 click==8.2.1
-Flask==3.0.3
+Flask==3.1.2
 Flask-HTTPAuth==4.8.0
 google-auth==2.40.3
 gunicorn==23.0.0
