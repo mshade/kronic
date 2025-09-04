@@ -107,7 +107,9 @@ docker run -i --name kronic \
 ```
 
 > **Note**
-> You may need to ensure permissions on the kubeconfig file are readable to the `kronic` user (uid 3000). You may also mount a specific kubeconfig file into place, ie: `-v $HOME/.kube/kronic.yaml:/home/kronic/.kube/config`
+> You may need to ensure permissions on the kubeconfig file are readable to the `kronic` user (uid 3000): `chmod +r ~/.kube/config`. You may also mount a specific kubeconfig file into place, ie: `-v $HOME/.kube/kronic.yaml:/home/kronic/.kube/config`
+
+For detailed instructions on running integration tests locally, see [TESTING.md](./TESTING.md).
 
 
 ## Design
@@ -134,5 +136,6 @@ Kronic is a small Flask app built with:
 - [ ] Error handling for js apiClient
 - [ ] Better logging from Flask app and Kron module
 - [ ] Improve test coverage
+- [x] Integration tests documentation
 - [ ] Integration tests against ephemeral k3s cluster
 - [ ] Improve localdev stack with automated k3d cluster provisioning

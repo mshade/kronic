@@ -1,8 +1,9 @@
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, Response
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash
 
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, ParamSpec, TypeVar, Union, cast
 import yaml
 
 import config
@@ -26,21 +27,26 @@ auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_password(username, password):
+def verify_password(username: str, password: str) -> Union[str, bool]:
     # No users defined, so no auth enabled
     if not config.USERS:
         return True
-    else:
-        if username in config.USERS and check_password_hash(
-            config.USERS.get(username), password
-        ):
-            return username
+
+    # Get the hashed password safely
+    hashed = config.USERS.get(username)
+    if hashed and isinstance(hashed, str) and check_password_hash(hashed, password):
+        return username
+    return False
 
 
 # A namespace filter decorator
-def namespace_filter(func):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def namespace_filter(func: Callable[P, R]) -> Callable[..., Any]:
     @wraps(func)
-    def wrapper(namespace, *args, **kwargs):
+    def wrapper(namespace: str, *args: Any, **kwargs: Any) -> Any:
         if config.ALLOW_NAMESPACES:
             if namespace in config.ALLOW_NAMESPACES.split(","):
                 return func(namespace, *args, **kwargs)
@@ -61,7 +67,7 @@ def namespace_filter(func):
     return wrapper
 
 
-def _strip_immutable_fields(spec):
+def _strip_immutable_fields(spec: Dict[str, Any]) -> Dict[str, Any]:
     spec.pop("status", None)
     metadata = spec.get("metadata", {})
     metadata.pop("uid", None)
@@ -70,14 +76,14 @@ def _strip_immutable_fields(spec):
 
 
 @app.route("/healthz")
-def healthz():
+def healthz() -> Dict[str, str]:
     return {"status": "ok"}
 
 
 @app.route("/")
 @app.route("/namespaces/")
 @auth.login_required
-def index():
+def index() -> Union[str, Response]:
     if config.NAMESPACE_ONLY:
         return redirect(
             f"/namespaces/{config.KRONIC_NAMESPACE}",
@@ -85,7 +91,7 @@ def index():
         )
 
     cronjobs = get_cronjobs()
-    namespaces = {}
+    namespaces: Dict[str, int] = {}
     # Count cronjobs per namespace
     for cronjob in cronjobs:
         namespaces[cronjob["namespace"]] = namespaces.get(cronjob["namespace"], 0) + 1
@@ -96,16 +102,22 @@ def index():
 @app.route("/namespaces/<namespace>")
 @namespace_filter
 @auth.login_required
-def view_namespace(namespace):
+def view_namespace(namespace: str) -> str:
     cronjobs = get_cronjobs(namespace)
     cronjobs_with_details = []
     all_pods = get_pods(namespace=namespace)
 
     for cronjob in cronjobs:
         cronjob_detail = get_cronjob(namespace, cronjob["name"])
+        if not isinstance(cronjob_detail, dict):
+            # Skip this cronjob if get_cronjob returned False
+            continue
+
         jobs = get_jobs(namespace=namespace, cronjob_name=cronjob["name"])
         for job in jobs:
-            job["pods"] = [pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])]
+            job["pods"] = [
+                pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])
+            ]
         cronjob_detail["jobs"] = jobs
         cronjobs_with_details.append(cronjob_detail)
 
@@ -117,7 +129,7 @@ def view_namespace(namespace):
 @app.route("/namespaces/<namespace>/cronjobs/<cronjob_name>", methods=["GET", "POST"])
 @namespace_filter
 @auth.login_required
-def view_cronjob(namespace, cronjob_name):
+def view_cronjob(namespace: str, cronjob_name: str) -> Union[str, Response]:
     if request.method == "POST":
         edited_cronjob = yaml.safe_load(request.form["yaml"])
         cronjob = update_cronjob(namespace, edited_cronjob)
@@ -129,7 +141,8 @@ def view_cronjob(namespace, cronjob_name):
     else:
         cronjob = get_cronjob(namespace, cronjob_name)
 
-    if cronjob:
+    # If cronjob is a dict, strip immutable fields, otherwise use default template
+    if isinstance(cronjob, dict) and cronjob:
         cronjob = _strip_immutable_fields(cronjob)
     else:
         cronjob = {
@@ -168,7 +181,7 @@ def view_cronjob(namespace, cronjob_name):
 
 @app.route("/api/")
 @auth.login_required
-def api_index():
+def api_index() -> Union[List[Dict[str, Any]], Response]:
     if config.NAMESPACE_ONLY:
         return redirect(
             f"/api/namespaces/{config.KRONIC_NAMESPACE}",
@@ -183,7 +196,7 @@ def api_index():
 @app.route("/api/namespaces/<namespace>")
 @namespace_filter
 @auth.login_required
-def api_namespace(namespace):
+def api_namespace(namespace: str) -> List[Dict[str, Any]]:
     cronjobs = get_cronjobs(namespace)
     return cronjobs
 
@@ -191,8 +204,10 @@ def api_namespace(namespace):
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>")
 @namespace_filter
 @auth.login_required
-def api_get_cronjob(namespace, cronjob_name):
+def api_get_cronjob(namespace: str, cronjob_name: str) -> Dict[str, Any]:
     cronjob = get_cronjob(namespace, cronjob_name)
+    if not isinstance(cronjob, dict):
+        return {"error": f"Cronjob {cronjob_name} not found"}
     return cronjob
 
 
@@ -201,8 +216,19 @@ def api_get_cronjob(namespace, cronjob_name):
 )
 @namespace_filter
 @auth.login_required
-def api_clone_cronjob(namespace, cronjob_name):
+def api_clone_cronjob(namespace: str, cronjob_name: str) -> Dict[str, Any]:
     cronjob_spec = get_cronjob(namespace, cronjob_name)
+    if not isinstance(cronjob_spec, dict):
+        # Handle the case where get_cronjob returns False
+        return {"error": f"Cronjob {cronjob_name} not found"}
+
+    if (
+        not request.json
+        or not isinstance(request.json, dict)
+        or "name" not in request.json
+    ):
+        return {"error": "Missing name in request"}
+
     new_name = request.json["name"]
     cronjob_spec["metadata"]["name"] = new_name
     cronjob_spec["spec"]["jobTemplate"]["metadata"]["name"] = new_name
@@ -215,7 +241,10 @@ def api_clone_cronjob(namespace, cronjob_name):
 @app.route("/api/namespaces/<namespace>/cronjobs/create", methods=["POST"])
 @namespace_filter
 @auth.login_required
-def api_create_cronjob(namespace):
+def api_create_cronjob(namespace: str) -> Dict[str, Any]:
+    if not request.json or "data" not in request.json:
+        return {"error": "Missing data in request"}
+
     cronjob_spec = request.json["data"]
     cronjob = update_cronjob(namespace, cronjob_spec)
     return cronjob
@@ -226,7 +255,7 @@ def api_create_cronjob(namespace):
 )
 @namespace_filter
 @auth.login_required
-def api_delete_cronjob(namespace, cronjob_name):
+def api_delete_cronjob(namespace: str, cronjob_name: str) -> Dict[str, Any]:
     deleted = delete_cronjob(namespace, cronjob_name)
     return deleted
 
@@ -237,15 +266,18 @@ def api_delete_cronjob(namespace, cronjob_name):
 )
 @namespace_filter
 @auth.login_required
-def api_toggle_cronjob_suspend(namespace, cronjob_name):
+def api_toggle_cronjob_suspend(namespace: str, cronjob_name: str) -> Dict[str, Any]:
     if request.method == "GET":
         """Return the suspended status of the <cronjob_name>"""
         cronjob = get_cronjob(namespace, cronjob_name)
+        if not isinstance(cronjob, dict):
+            return {"error": f"Cronjob {cronjob_name} not found"}
         return cronjob
-    if request.method == "POST":
-        """Toggle the suspended status of <cronjob_name>"""
-        cronjob = toggle_cronjob_suspend(namespace, cronjob_name)
-        return cronjob
+
+    # Must be POST
+    """Toggle the suspended status of <cronjob_name>"""
+    cronjob = toggle_cronjob_suspend(namespace, cronjob_name)
+    return cronjob
 
 
 @app.route(
@@ -253,7 +285,9 @@ def api_toggle_cronjob_suspend(namespace, cronjob_name):
 )
 @namespace_filter
 @auth.login_required
-def api_trigger_cronjob(namespace, cronjob_name):
+def api_trigger_cronjob(
+    namespace: str, cronjob_name: str
+) -> tuple[Dict[str, Any], int]:
     """Manually trigger a job from <cronjob_name>"""
     cronjob = trigger_cronjob(namespace, cronjob_name)
     status = 200
@@ -266,7 +300,7 @@ def api_trigger_cronjob(namespace, cronjob_name):
 @app.route("/api/namespaces/<namespace>/cronjobs/<cronjob_name>/getJobs")
 @namespace_filter
 @auth.login_required
-def api_get_jobs(namespace, cronjob_name):
+def api_get_jobs(namespace: str, cronjob_name: str) -> List[Dict[str, Any]]:
     jobs = get_jobs_and_pods(namespace, cronjob_name)
     return jobs
 
@@ -274,7 +308,7 @@ def api_get_jobs(namespace, cronjob_name):
 @app.route("/api/namespaces/<namespace>/pods")
 @namespace_filter
 @auth.login_required
-def api_get_pods(namespace):
+def api_get_pods(namespace: str) -> List[Dict[str, Any]]:
     pods = get_pods(namespace)
     return pods
 
@@ -282,7 +316,7 @@ def api_get_pods(namespace):
 @app.route("/api/namespaces/<namespace>/pods/<pod_name>/logs")
 @namespace_filter
 @auth.login_required
-def api_get_pod_logs(namespace, pod_name):
+def api_get_pod_logs(namespace: str, pod_name: str) -> str:
     logs = get_pod_logs(namespace, pod_name)
     return logs
 
@@ -290,6 +324,6 @@ def api_get_pod_logs(namespace, pod_name):
 @app.route("/api/namespaces/<namespace>/jobs/<job_name>/delete", methods=["POST"])
 @namespace_filter
 @auth.login_required
-def api_delete_job(namespace, job_name):
+def api_delete_job(namespace: str, job_name: str) -> Dict[str, Any]:
     deleted = delete_job(namespace, job_name)
     return deleted
