@@ -1,4 +1,4 @@
-blinker==1.8.2
+blinker==1.9.0
 boltons==24.1.0
 cachetools==5.5.2
 certifi==2024.12.14
