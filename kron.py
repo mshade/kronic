@@ -1,4 +1,4 @@
-import logging
+import json, logging
 
 from kubernetes import client
 from kubernetes import config as kubeconfig
@@ -6,6 +6,7 @@ from kubernetes.config import ConfigException
 from kubernetes.client.rest import ApiException
 from datetime import datetime, timezone
 from typing import List
+from werkzeug import exceptions
 
 import config
 
@@ -119,6 +120,19 @@ def _has_label(api_object: object, k: str, v: str) -> bool:
     return labels.get(k) == v
 
 
+def _api_exception_to_http_exception(e: ApiException):
+    """
+    Convert a Kubernetes ApiException into a HTTP exception.
+    """
+    log.error(e)
+    description = json.loads(e.body)["message"]
+    if e.status in [401, 403]:
+        return exceptions.Forbidden(description=description)
+    if e.status == 404:
+        return exceptions.NotFound(description=description)
+    return exceptions.InternalServerError("Something went wrong")
+
+
 def pod_is_owned_by(api_dict: dict, owner_name: str) -> bool:
     """Return whether a job or pod contains an ownerReference to the given cronjob or job name
 
@@ -176,16 +190,7 @@ def get_cronjobs(namespace: str = None) -> List[dict]:
         return sorted_cronjobs
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -202,8 +207,8 @@ def get_cronjob(namespace: str, cronjob_name: str) -> dict:
     try:
         cronjob = batch.read_namespaced_cron_job(cronjob_name, namespace)
         return _clean_api_object(cronjob)
-    except ApiException:
-        return False
+    except ApiException as e:
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -270,16 +275,7 @@ def get_pods(namespace: str, job_name: str = None) -> List[dict]:
         return filtered_pods
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -340,16 +336,7 @@ def trigger_cronjob(namespace: str, cronjob_name: str) -> dict:
         return _clean_api_object(trigger_job)
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -374,16 +361,7 @@ def toggle_cronjob_suspend(namespace: str, cronjob_name: str) -> dict:
         return _clean_api_object(cronjob)
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -399,23 +377,15 @@ def update_cronjob(namespace: str, spec: str) -> dict:
     """
     try:
         name = spec["metadata"]["name"]
-        if get_cronjob(namespace, name):
+        try:
             cronjob = batch.patch_namespaced_cron_job(name, namespace, spec)
-        else:
+        except ApiException as e:
+            # TODO: e may be e.g. Forbidden
             cronjob = batch.create_namespaced_cron_job(namespace, spec)
         return _clean_api_object(cronjob)
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -434,16 +404,7 @@ def delete_cronjob(namespace: str, cronjob_name: str) -> dict:
         return _clean_api_object(deleted)
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
 
 
 @namespace_filter
@@ -462,13 +423,4 @@ def delete_job(namespace: str, job_name: str) -> dict:
         return _clean_api_object(deleted)
 
     except ApiException as e:
-        log.error(e)
-        response = {
-            "error": 500,
-            "exception": {
-                "status": e.status,
-                "reason": e.reason,
-                "message": e.body["message"],
-            },
-        }
-        return response
+        raise _api_exception_to_http_exception(e)
