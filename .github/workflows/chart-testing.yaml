@@ -20,7 +20,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.12.0
+          version: v3.21.4
 
       - uses: actions/setup-python@v5
         with:
@@ -63,7 +63,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: 'v3.12.3'
+          version: 'v3.21.4'
       
       - name: Generate Chart Readme
         run: ./.github/gen-chart-readme.sh
