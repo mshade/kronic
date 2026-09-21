@@ -1,7 +1,7 @@
 blinker==1.9.0
 boltons==24.1.0
 cachetools==5.5.2
-certifi==2024.12.14
+certifi==2026.7.22
 cffi==2.1.1
 charset-normalizer==3.5.1
 click==8.5.0
