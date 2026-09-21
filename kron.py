@@ -261,7 +261,9 @@ def get_pods(namespace: str, job_name: str = None) -> List[dict]:
         all_pods = v1.list_namespaced_pod(namespace=namespace)
         cleaned_pods = [_clean_api_object(pod) for pod in all_pods.items]
         filtered_pods = [
-            pod for pod in cleaned_pods if pod_is_owned_by(pod, job_name) or (not job_name)
+            pod
+            for pod in cleaned_pods
+            if pod_is_owned_by(pod, job_name) or (not job_name)
         ]
 
         for pod in filtered_pods:
@@ -296,7 +298,9 @@ def get_jobs_and_pods(namespace: str, cronjob_name: str) -> List[dict]:
     jobs = get_jobs(namespace, cronjob_name)
     all_pods = get_pods(namespace)
     for job in jobs:
-        job["pods"] = [pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])]
+        job["pods"] = [
+            pod for pod in all_pods if pod_is_owned_by(pod, job["metadata"]["name"])
+        ]
 
     return jobs
 

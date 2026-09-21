@@ -1,6 +1,5 @@
 from kubernetes import client
 
-
 ## Create API Objects for testing
 
 labels = {"app": "test"}
