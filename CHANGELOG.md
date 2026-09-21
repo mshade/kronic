@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-09-21
+
+Maintenance release. No user-facing feature or behaviour changes: this brings
+the runtime and dependencies current after an extended gap, and resolves all
+outstanding HIGH severity findings in the release image.
+
+## Security
+
+* Resolved every outstanding HIGH severity vulnerability reported by Trivy,
+  covering pyasn1, urllib3, Flask, Werkzeug, requests, idna and Flask-HTTPAuth
+  by @mshade in https://github.com/mshade/kronic/pull/176
+* Removed `pip` from the release image. It is never invoked at runtime, and its
+  vendored dependencies were the only remaining source of HIGH findings
+  by @mshade in https://github.com/mshade/kronic/pull/174
+
+## Changed
+
+* Base image moved from `python:3.12-alpine` to `python:3.14-alpine`
+  by @renovate in https://github.com/mshade/kronic/pull/174
+* `urllib3` crossed the 1.x to 2.x major boundary (1.26.18 to 2.8.0)
+* `google-auth` now requires `cryptography`, so `cryptography`, `cffi` and
+  `pycparser` are pinned explicitly to keep `requirements.txt` a complete closure
+* Renovate groups non-major updates into one PR per manager, and again tracks the
+  Dockerfile base image, which a malformed versioning rule had silently excluded
+  by @mshade in https://github.com/mshade/kronic/pull/180
+* Squelched Dockerfile build warnings by @mshade in https://github.com/mshade/kronic/pull/142
+
+## Updated
+
+Runtime dependencies, from v0.1.4:
+
+* blinker 1.7.0 to 1.9.0
+* boltons 23.1.1 to 24.1.0
+* cachetools 5.3.3 to 5.5.2
+* certifi 2024.2.2 to 2024.12.14
+* charset-normalizer 3.3.2 to 3.5.1
+* click 8.1.7 to 8.5.0
+* Flask 3.0.2 to 3.1.3
+* Flask-HTTPAuth 4.8.0 to 4.8.1
+* google-auth 2.28.1 to 2.58.0
+* gunicorn 21.2.0 to 23.0.0
+* idna 3.6 to 3.20
+* itsdangerous 2.1.2 to 2.2.0
+* Jinja2 3.1.3 to 3.1.6
+* kubernetes 29.0.0 to 30.1.0
+* oauthlib 3.2.2 to 3.3.1
+* packaging 23.2 to 24.2
+* pyasn1 0.5.1 to 0.6.4
+* pyasn1-modules 0.3.0 to 0.4.2
+* PyYAML 6.0.1 to 6.0.3
+* requests 2.31.0 to 2.34.2
+* requests-oauthlib 1.3.1 to 2.0.0
+* rsa 4.9 to 4.9.1
+* six 1.16.0 to 1.17.0
+* urllib3 1.26.18 to 2.8.0
+* websocket-client 1.7.0 to 1.9.2
+* Werkzeug 3.0.1 to 3.1.8
+
+Development dependencies: pytest 8.0.2 to 9.1.1, black 24.2.0 to 26.5.1.
+
+CI tooling: helm 3.12.0 to 3.22.0, chart-testing-action 2.6.1 to 2.8.0,
+kind-action 1.9.0 to 1.15.0, chart-releaser-action 1.6.0 to 1.7.0.
+
+**Full Changelog**: https://github.com/mshade/kronic/compare/v0.1.4...v0.1.5
+
+
 ## [0.1.4] - 2024-03-04
 
 ## Added
