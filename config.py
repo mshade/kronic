@@ -4,7 +4,6 @@ import sys
 
 from werkzeug.security import generate_password_hash
 
-
 log = logging.getLogger("app.config")
 
 ## Configuration Setings
