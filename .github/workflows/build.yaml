@@ -91,7 +91,7 @@ jobs:
         with:
           version: v3.22.0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
           check-latest: true
