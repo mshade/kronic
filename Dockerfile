@@ -1,4 +1,4 @@
-FROM python:3.12-alpine AS deps
+FROM python:3.14-alpine AS deps
 ENV PYTHONUNBUFFERED=1
 
 RUN apk --no-cache upgrade
