@@ -1,5 +1,5 @@
 blinker==1.9.0
-boltons==24.1.0
+boltons==26.2.0
 cachetools==5.5.2
 certifi==2024.12.14
 cffi==2.1.1
